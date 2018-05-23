@@ -45,38 +45,73 @@ uint32_t prevMillis = 0;
 void setup() {
   initMotor();
   Motor_enableA();
+  Motor_enableB();
+  Motor_microStep_A(16);
+  Motor_microStep_B(16);
 
-
-  OCR0A = 10;
-  //OCR2A = 50;
-
-  s = 255;
+  OCR0A = 1;
+  OCR2A = 1;
 
   sei();
 }
 
 void loop() {
-  //  if (millis() - prevMillis >= 100) {
-  //    prevMillis = millis();
-  //    s += 10;
-  //  }
-  Motor_microStep_A(1);
+  Motor_enableA();
+  Motor_enableB();
+  stepDivider_A = 100;
+  stepDivider_B = 100;
+  for (uint8_t j = 0; j < 90; j++) {
+    for (volatile uint32_t i = 0; i < 500; i++) {
+    }
+    stepDivider_A--;
+    stepDivider_B--;
+  }
+  for (uint8_t j = 0; j < 90; j++) {
+    for (volatile uint32_t i = 0; i < 500; i++) {
+    }
+    stepDivider_A--;
+    stepDivider_B--;
+  }
+  for (volatile uint32_t i = 0; i < 100000; i++) {
+  }
+  Motor_disableA();
+  Motor_disableB();
+  for (volatile uint32_t i = 0; i < 500000; i++) {
+  }
+
+
+  stepDivider_A = 10;
+  stepDivider_B = 10;
+  OCR0A = 50;
+  OCR2A = 50;
+  Motor_enableA();
+  Motor_enableB();
+  for (uint8_t j = 0; j < 55; j++) {
+    for (volatile uint32_t i = 0; i < 3000; i++) {
+    }
+    if (OCR0A > 1) {
+      OCR0A--;
+    }
+    if (OCR2A > 1) {
+      OCR2A--;
+    }
+  }
+  stepDivider_A--;
+  stepDivider_B--;
+  for (volatile uint32_t i = 0; i < 10000; i++) {
+  }
+  stepDivider_A--;
+  stepDivider_B--;
+  for (volatile uint32_t i = 0; i < 10000; i++) {
+  }
+  stepDivider_A--;
+  stepDivider_B--;
+  for (volatile uint32_t i = 0; i < 100000; i++) {
+  }
+  Motor_disableA();
+  Motor_disableB();
+  stepDivider_A += 3;
+  stepDivider_B += 3;
   for (volatile uint32_t i = 0; i < 200000; i++) {
   }
-  Motor_microStep_A(2);
-  for (volatile uint32_t i = 0; i < 200000; i++) {
-  }
-  Motor_microStep_A(4);
-  for (volatile uint32_t i = 0; i < 200000; i++) {
-  }
-  Motor_microStep_A(8);
-  for (volatile uint32_t i = 0; i < 200000; i++) {
-  }
-  Motor_microStep_A(16);
-  for (volatile uint32_t i = 0; i < 200000; i++) {
-  }
-  Motor_microStep_A(32);
-  for (volatile uint32_t i = 0; i < 200000; i++) {
-  }
-  //  s--;
 }

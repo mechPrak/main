@@ -2,7 +2,8 @@
 void initMotor() {
   DDRD |= ((1 << STEP_A) | (1 << DIR_A) | (1 << ENABLE_A));
   DDRB |= ((1 << STEP_B) | (1 << DIR_B) | (1 << ENABLE_B));
-
+  PORTD |= (1 << DIR_A);
+  
   // Timer 0
   // CTC Mode
   TCCR0A = B00000010;
