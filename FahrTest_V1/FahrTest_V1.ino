@@ -38,11 +38,9 @@ volatile uint8_t stepCounter_A = 0;
 volatile uint8_t stepDivider_B = 50;
 volatile uint8_t stepCounter_B = 0;
 
-volatile uint8_t s = 0;
-
-uint32_t prevMillis = 0;
-
 void setup() {
+  initServo();
+
   initMotor();
   Motor_enableA();
   Motor_enableB();
@@ -56,62 +54,77 @@ void setup() {
 }
 
 void loop() {
-  Motor_enableA();
-  Motor_enableB();
-  stepDivider_A = 100;
-  stepDivider_B = 100;
-  for (uint8_t j = 0; j < 90; j++) {
-    for (volatile uint32_t i = 0; i < 500; i++) {
-    }
-    stepDivider_A--;
-    stepDivider_B--;
-  }
-  for (uint8_t j = 0; j < 90; j++) {
-    for (volatile uint32_t i = 0; i < 500; i++) {
-    }
-    stepDivider_A--;
-    stepDivider_B--;
-  }
-  for (volatile uint32_t i = 0; i < 100000; i++) {
-  }
-  Motor_disableA();
-  Motor_disableB();
-  for (volatile uint32_t i = 0; i < 500000; i++) {
-  }
+//    Motor_enableA();
+//    Motor_enableB();
+//  
+//    stepDivider_A = 100;
+//    stepDivider_B = 100;
+//    Motor_microStep_A(16);
+//    Motor_microStep_B(16);
+//    OCR0A = 2;
+//    OCR2A = 2;
+//    for (uint8_t j = 0; j < 90; j++) {
+//      for (volatile uint32_t i = 0; i < 500; i++) {
+//      }
+//      stepDivider_A--;
+//      stepDivider_B--;
+//    }
+//  
+//    stepDivider_A = 100;
+//    stepDivider_B = 100;
+//    Motor_microStep_A(8);
+//    Motor_microStep_B(8);
+//    OCR0A = 1;
+//    OCR2A = 1;
+//    for (uint8_t j = 0; j < 90; j++) {
+//      for (volatile uint32_t i = 0; i < 500; i++) {
+//      }
+//      stepDivider_A--;
+//      stepDivider_B--;
+//    }
+//  
+//    for (volatile uint32_t i = 0; i < 100000; i++) {
+//    }
+//    Motor_disableA();
+//    Motor_disableB();
+//    for (volatile uint32_t i = 0; i < 500000; i++) {
+//    }
 
 
-  stepDivider_A = 10;
-  stepDivider_B = 10;
-  OCR0A = 50;
-  OCR2A = 50;
-  Motor_enableA();
-  Motor_enableB();
-  for (uint8_t j = 0; j < 55; j++) {
-    for (volatile uint32_t i = 0; i < 3000; i++) {
-    }
-    if (OCR0A > 1) {
-      OCR0A--;
-    }
-    if (OCR2A > 1) {
-      OCR2A--;
-    }
-  }
-  stepDivider_A--;
-  stepDivider_B--;
-  for (volatile uint32_t i = 0; i < 10000; i++) {
-  }
-  stepDivider_A--;
-  stepDivider_B--;
-  for (volatile uint32_t i = 0; i < 10000; i++) {
-  }
-  stepDivider_A--;
-  stepDivider_B--;
-  for (volatile uint32_t i = 0; i < 100000; i++) {
-  }
-  Motor_disableA();
-  Motor_disableB();
-  stepDivider_A += 3;
-  stepDivider_B += 3;
-  for (volatile uint32_t i = 0; i < 200000; i++) {
-  }
+  //
+  //
+  //  stepDivider_A = 10;
+  //  stepDivider_B = 10;
+  //  OCR0A = 50;
+  //  OCR2A = 50;
+  //  Motor_enableA();
+  //  Motor_enableB();
+  //  for (uint8_t j = 0; j < 55; j++) {
+  //    for (volatile uint32_t i = 0; i < 3000; i++) {
+  //    }
+  //    if (OCR0A > 1) {
+  //      OCR0A--;
+  //    }
+  //    if (OCR2A > 1) {
+  //      OCR2A--;
+  //    }
+  //  }
+  //  stepDivider_A--;
+  //  stepDivider_B--;
+  //  for (volatile uint32_t i = 0; i < 10000; i++) {
+  //  }
+  //  stepDivider_A--;
+  //  stepDivider_B--;
+  //  for (volatile uint32_t i = 0; i < 10000; i++) {
+  //  }
+  //  stepDivider_A--;
+  //  stepDivider_B--;
+  //  for (volatile uint32_t i = 0; i < 100000; i++) {
+  //  }
+  //  Motor_disableA();
+  //  Motor_disableB();
+  //  stepDivider_A += 3;
+  //  stepDivider_B += 3;
+  //  for (volatile uint32_t i = 0; i < 200000; i++) {
+  //  }
 }
