@@ -12,7 +12,7 @@
 
 float v0 = 0;
 float v = 10000;
-float a = 10000;
+float a = 100000;
 float F = 160000;
 
 float S = (pow(v, 2) - pow(v0, 2)) / (2 * a);
