@@ -50,7 +50,7 @@ static volatile uint16_t buffer_sensorwerte[11];
 static volatile uint8_t sc_wert_counter = 0;
 
 void sc_setup() {
-  Serial.begin(9600);
+  Serial.begin(115200);
  
   ADC_DDR &= ~(1<<HELL1);
   ADC_DDR &= ~(1<<HELL2);
@@ -112,7 +112,7 @@ ISR(ADC_vect){
     sc_wert_counter++;
     sc_refreshValues();
     cli();
-    for(uint8_t j = 0; j<11;j++){
+    for(uint8_t j = 1; j<10;j++){
       Serial.print(sensorwerte[j]);
       Serial.print(" ");
     }
