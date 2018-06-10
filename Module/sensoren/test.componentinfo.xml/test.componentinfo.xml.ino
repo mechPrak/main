@@ -112,7 +112,7 @@ ISR(ADC_vect){
     sc_wert_counter++;
     sc_refreshValues();
     cli();
-    for(uint8_t j = 1; j<10;j++){
+    for(uint8_t j = 0; j<11;j++){
       Serial.print(sensorwerte[j]);
       Serial.print(" ");
     }
