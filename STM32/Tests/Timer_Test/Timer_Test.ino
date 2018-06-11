@@ -4,10 +4,10 @@ void setup() {
   GPIOC_BASE -> CRH = 0b1 << 20;
   //GPIOC_BASE -> CRH = 0b1 << 21;
 
-  /*Timer2.setMode(TIMER_CH1, TIMER_OUTPUTCOMPARE);
+  Timer2.setMode(TIMER_CH1, TIMER_OUTPUTCOMPARE);
   Timer2.setPeriod(1); // in microseconds
   Timer2.setCompare(TIMER_CH1, 1);      // overflow might be small
-  Timer2.attachInterrupt(TIMER_CH1, tog);*/
+  Timer2.attachInterrupt(TIMER_CH1, tog);
 }
 
 void loop() {
