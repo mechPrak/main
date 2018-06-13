@@ -6,15 +6,15 @@
 HardwareTimer motor_timer(2);
 
 //Hardware Pins
-#define MR_STEP PC13
-#define MR_DIR PC14
-#define MR_ENABLE PC15
+#define MR_STEP PB8
+#define MR_DIR PB9
+#define MR_ENABLE PB7
 
 
 
-#define MC_MIN_DELAY = 10
-#define MC_SNEAK_DELAY = 100
-
+#define MC_MIN_DELAY  10
+#define MC_SNEAK_DELAY  200
+#define MC_INITIAL_DELAY 500
 
 //TODO: variablentypen optimieren
 volatile int mr_dir = 0;						//1 oder -1, bestimmt Richtung
@@ -40,7 +40,7 @@ void m_init() {
   pinMode(MR_DIR, OUTPUT);
   pinMode(MR_ENABLE, OUTPUT);
 
-  mr_c0 = INITIAL_DELAY;
+  mr_c0 = MC_INITIAL_DELAY;
   mr_minDelay = MC_MIN_DELAY;
 
   motor_timer.pause();
@@ -141,14 +141,12 @@ void mr_disable(){
 
 void loop() {
   mr_setMinDelay(10);
-  mr_setAcc(100);
-  mr_move(3200);
-  delay(2000);
-  mr_setMinDelay(20);
-  mr_setAcc(2000);
-  mr_move(3200);
-  delay(2000);
+  mr_setAcc(1000);
+  mr_move(3000);
+  delay(4000);
   setSneak(false);
+
+  delay(10000);
 }
 
 
@@ -165,7 +163,7 @@ void loop() {
 //-----------------------
 
 void setSneak(bool nSneak){
-	sneak = nSneak;
+	mr_sneak = nSneak;
 }
 
 
