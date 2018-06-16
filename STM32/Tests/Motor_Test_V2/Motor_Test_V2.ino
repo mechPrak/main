@@ -2,17 +2,16 @@
 //get pos und set pos
 // compensate
 
-
 HardwareTimer motor_timer(2);
 
 //Hardware Pins
-#define MR_STEP PB8
-#define MR_DIR PB9
-#define MR_ENABLE PB7
+#define MR_STEP PB10
+#define MR_DIR PB1
+#define MR_ENABLE PB11
 
-#define ML_STEP PB3
-#define ML_DIR PB4
-#define ML_ENABLE PB5
+#define ML_STEP PA7
+#define ML_DIR PA6
+#define ML_ENABLE PB0
 
 
 //Geschwindigkeitswerte
@@ -272,7 +271,7 @@ void loop() {
   delay(4000);
   setMRSneak(false);
 
-  delay(10000);
+  delay(3000);
 }
 
 
