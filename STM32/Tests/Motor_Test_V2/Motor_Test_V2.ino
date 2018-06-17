@@ -1,7 +1,7 @@
 //mov und move to
 //get pos und set pos
 // compensate
-#include <Servo.h>
+
 
 
 HardwareTimer motor_timer(2);
@@ -18,7 +18,7 @@ HardwareTimer motor_timer(2);
 
 //Geschwindigkeitswerte
 #define MC_MIN_DELAY  10
-#define MC_SNEAK_DELAY  200
+#define MC_SNEAK_DELAY  20
 #define MC_INITIAL_DELAY 500
 
 //TODO: variablentypen optimieren
@@ -33,8 +33,8 @@ volatile unsigned long mr_totalSteps = 0;		//
 volatile int mr_stepPosition = 0;				    //
 volatile bool mr_movementDone = false;			//
 volatile int mr_counter = 0;					      //Counter für Delay
-volatile bool mr_sneak_enabled = false;
-volatile bool mr_stop_sneak = false;
+volatile bool mrSneakEnabled = false;
+volatile bool mrStopSneak = false;
 volatile int mr_sneakDelay = MC_SNEAK_DELAY;
 
 
@@ -49,18 +49,21 @@ volatile unsigned long ml_totalSteps = 0;   //
 volatile int ml_stepPosition = 0;           //
 volatile bool ml_movementDone = false;      //
 volatile int ml_counter = 0;                //Counter für Delay
-volatile bool ml_sneak_enabled = false;
-volatile bool ml_stop_sneak = false;
+volatile bool mlSneakEnabled = false;
+volatile bool mlStopSneak = false;
 volatile int ml_sneakDelay = MC_SNEAK_DELAY;
 
-Servo myservo;
+
+//DEBUG, REMOVE LATER
+volatile int state = 0;
+
 void setup() {
   m_init();
   mr_enable();
   ml_enable();
 
   Serial.begin(115200);
-  myservo.attach(PB9);
+
 }
 
 void m_init() {
@@ -95,10 +98,12 @@ void motor(){
 }
 
 void motorR() {
+  state = ml_delay;
+  
   //Prüfe, ob es an der Zeit ist, einen Step zu fahren
   if (mr_counter >= mr_delay) {
 	  //Prüfe ob noch ein Step gefahren werden muss
-    if (mr_stepCount < mr_totalSteps) {
+    if (mr_stepCount < mr_totalSteps || (mrSneakEnabled && !mrStopSneak)) {
       digitalWrite(MR_STEP, HIGH);							//STEP fahren
       digitalWrite(MR_STEP, LOW);
       mr_stepCount++;										//Relative Position updaten
@@ -113,11 +118,11 @@ void motorR() {
     if (mr_rampUpStepCount == 0) {
       mr_n++;
       mr_delay = mr_delay - (2 * mr_delay) / (4 * mr_n + 1);
-	  
 	  //Maximale Geschwindigkeit wurde erreicht
       if (mr_delay <= mr_minDelay) {
         mr_delay = mr_minDelay;
         mr_rampUpStepCount = mr_stepCount;
+
       }
 	  
 	  //Vorzeitiges Abbremsen (Falls mr_totalSteps nicht ausreicht um auf maximale Geschwindigkeit zu beschleunigen)
@@ -127,6 +132,18 @@ void motorR() {
     }
 	
 	//Bremsen
+      //Langsame Geschwindigkeit halten (Schleichen)
+    else if(mr_delay >= mr_sneakDelay && mrSneakEnabled == true){
+        
+       //Schleich-Delay setzen
+       mr_delay = mr_sneakDelay;
+      
+      //Schleichen beenden
+      if(mrStopSneak){
+        //Abbruchbedingung setzen
+        mr_stepCount = mr_totalSteps;
+      }
+    }
 			//Abbremsen
 		else if (mr_stepCount >= mr_totalSteps - mr_rampUpStepCount) {   
 			  mr_n--;
@@ -142,10 +159,12 @@ void motorR() {
 }
 
 void motorL() {
+  
+  
   //Prüfe, ob es an der Zeit ist, einen Step zu fahren
   if (ml_counter >= ml_delay) {
     //Prüfe ob noch ein Step gefahren werden muss
-    if (ml_stepCount < ml_totalSteps) {
+    if (ml_stepCount < ml_totalSteps || (mlSneakEnabled && !mlStopSneak)) {
       digitalWrite(ML_STEP, HIGH);              //STEP fahren
       digitalWrite(ML_STEP, LOW);
       ml_stepCount++;                   //Relative Position updaten
@@ -167,11 +186,27 @@ void motorL() {
         ml_rampUpStepCount = ml_stepCount;
       }
     
-    //Vorzeitiges Abbremsen (Falls mr_totalSteps nicht ausreicht um auf maximale Geschwindigkeit zu beschleunigen)
+    //Vorzeitiges Abbremsen (Falls ml_totalSteps nicht ausreicht um auf maximale Geschwindigkeit zu beschleunigen)
       if (ml_stepCount >= ml_totalSteps / 2) {
         ml_rampUpStepCount = ml_stepCount;
       }
     }
+
+     //Langsame Geschwindigkeit halten (Schleichen)
+    else if(ml_delay >= ml_sneakDelay && mlSneakEnabled == true){
+
+        state = ml_delay;
+        
+       //Schleich-Delay setzen
+       ml_delay = ml_sneakDelay;
+      
+      //Schleichen beenden
+      if(mlStopSneak){
+        //Abbruchbedingung setzen
+        ml_stepCount = ml_totalSteps;
+      }
+    }
+    
     //weiteres Abbremsen
     else if (ml_stepCount >= ml_totalSteps - ml_rampUpStepCount ) {
       ml_n--;
@@ -188,6 +223,9 @@ void motorL() {
 
 
 void mr_move(long steps) {
+  //Motor ist um 180° gedreht eingebaut => Drehrichtung umkehren
+  steps = -steps;
+  
   digitalWrite(MR_DIR, steps < 0 ? HIGH : LOW);
   mr_dir = steps > 0 ? 1 : -1;
   mr_totalSteps = abs(steps);
@@ -214,7 +252,7 @@ void mr_setAcc(int acc){
 }
 
 void ml_setAcc(int acc){
-  mr_c0 = acc;
+  ml_c0 = acc;
 }
 
 void mr_setMinDelay(int del){
@@ -248,19 +286,22 @@ void loop() {
   mr_setMinDelay(10);
   mr_setAcc(1000);
   mr_move(10000);
-
+  mr_setSneak(true);
+  mr_setStopSneak(false);
   
   ml_setMinDelay(10);
   ml_setAcc(1000);
-  ml_move(3000);
-
-
-  myservo.write(20);
+  ml_move(10000);
+  ml_setSneak(true);
+  ml_setStopSneak(false);
   
-  delay(10000);
-  
+  for(int i = 0; i < 10000; i++){
+    Serial.println(state);
+  }
+ 
   //Schleichen deaktivieren
-
+  mr_setStopSneak(true);
+  ml_setStopSneak(true);
   delay(3000);
 }
 
@@ -276,3 +317,19 @@ void loop() {
 //-----------------------
 //		SETTER
 //-----------------------
+
+void mr_setSneak(bool sneakEnabled){
+  mrSneakEnabled = sneakEnabled;
+}
+
+void ml_setSneak(bool sneakEnabled){
+  mlSneakEnabled = sneakEnabled;
+}
+
+void mr_setStopSneak(bool stopSneak){
+  mrStopSneak = stopSneak;
+}
+
+void ml_setStopSneak(bool stopSneak){
+  mlStopSneak = stopSneak;
+}
