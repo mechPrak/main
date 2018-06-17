@@ -1,6 +1,8 @@
 //mov und move to
 //get pos und set pos
 // compensate
+#include <Servo.h>
+
 
 HardwareTimer motor_timer(2);
 
@@ -31,7 +33,8 @@ volatile unsigned long mr_totalSteps = 0;		//
 volatile int mr_stepPosition = 0;				    //
 volatile bool mr_movementDone = false;			//
 volatile int mr_counter = 0;					      //Counter für Delay
-volatile bool mr_sneak = false;
+volatile bool mr_sneak_enabled = false;
+volatile bool mr_stop_sneak = false;
 volatile int mr_sneakDelay = MC_SNEAK_DELAY;
 
 
@@ -46,14 +49,18 @@ volatile unsigned long ml_totalSteps = 0;   //
 volatile int ml_stepPosition = 0;           //
 volatile bool ml_movementDone = false;      //
 volatile int ml_counter = 0;                //Counter für Delay
-volatile bool ml_sneak = false;
+volatile bool ml_sneak_enabled = false;
+volatile bool ml_stop_sneak = false;
 volatile int ml_sneakDelay = MC_SNEAK_DELAY;
 
-
+Servo myservo;
 void setup() {
   m_init();
   mr_enable();
   ml_enable();
+
+  Serial.begin(115200);
+  myservo.attach(PB9);
 }
 
 void m_init() {
@@ -120,19 +127,10 @@ void motorR() {
     }
 	
 	//Bremsen
-    else
-		//sneak-Modus
-		if(mr_delay <= MC_SNEAK_DELAY){
-			mr_delay = MC_SNEAK_DELAY;
-			if(!mr_sneak){
-				//Motor stoppen
-				mr_stepCount = mr_totalSteps;
-			}
-		}
-		//weiteres Abbremsen
-		else if (mr_stepCount >= mr_totalSteps - mr_rampUpStepCount ) {
-			mr_n--;
-			mr_delay = (mr_delay * (4 * mr_n + 1)) / (4 * mr_n + 1 - 2);
+			//Abbremsen
+		else if (mr_stepCount >= mr_totalSteps - mr_rampUpStepCount) {   
+			  mr_n--;
+			  mr_delay = (mr_delay * (4 * mr_n + 1)) / (4 * mr_n + 1 - 2);
 		}
 	
 	//Neuen Counter für Delay setzen
@@ -174,17 +172,6 @@ void motorL() {
         ml_rampUpStepCount = ml_stepCount;
       }
     }
-  
-  //Bremsen
-    else
-    //sneak-Modus
-    if(ml_delay <= MC_SNEAK_DELAY){
-      ml_delay = MC_SNEAK_DELAY;
-      if(!ml_sneak){
-        //Motor stoppen
-        ml_stepCount = ml_totalSteps;
-      }
-    }
     //weiteres Abbremsen
     else if (ml_stepCount >= ml_totalSteps - ml_rampUpStepCount ) {
       ml_n--;
@@ -209,7 +196,6 @@ void mr_move(long steps) {
   mr_n = 0;
   mr_rampUpStepCount = 0;
   mr_movementDone = false;
-  mr_sneak = true;
 }
 
 void ml_move(long steps) {
@@ -221,7 +207,6 @@ void ml_move(long steps) {
   ml_n = 0;
   ml_rampUpStepCount = 0;
   ml_movementDone = false;
-  ml_sneak = true;
 }
 
 void mr_setAcc(int acc){
@@ -259,17 +244,22 @@ void ml_disable(){
 
 
 void loop() {
+  
   mr_setMinDelay(10);
   mr_setAcc(1000);
-  mr_move(3000);
+  mr_move(10000);
 
   
   ml_setMinDelay(10);
   ml_setAcc(1000);
   ml_move(3000);
+
+
+  myservo.write(20);
   
-  delay(4000);
-  setMRSneak(false);
+  delay(10000);
+  
+  //Schleichen deaktivieren
 
   delay(3000);
 }
@@ -286,11 +276,3 @@ void loop() {
 //-----------------------
 //		SETTER
 //-----------------------
-
-void setMRSneak(bool nSneak){
-	mr_sneak = nSneak;
-}
-
-void setMLSneak(bool nSneak){
-  ml_sneak = nSneak;
-}
