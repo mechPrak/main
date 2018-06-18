@@ -1,14 +1,11 @@
+
+
 /*
 Testcode, der die Motoren an und kurz dararuf wieder ausschaltet. Hat einige Probleme:
   -Die Geschwindigkeit wird nicht richtig übergeben (vermutlich overflow)
   -Zwischen den pushValues() sind (offenbar?) delays() nötig.
 
 */
-
-
-
-
-//***Ende Test
 
 //Addresse des Slaves von mir nicht genutzt
 #define ADDR 0x08
@@ -29,9 +26,6 @@ volatile uint16_t i2c_bufferR[I2CBUFFERREAD];
 volatile uint8_t *i2c_8BitArray; 
 
 void pushValues(){
-  /*for(uint8_t i=0; i<3; i++){
-    Serial.println(i2c_bufferW[i]);
-  }*/
   //! Aus Schmalex' loop rauskopierte, sollte Datenübertragung einleiten
   //Start der I2C Übertragung
     TWCR = 0b11100101;
@@ -43,6 +37,8 @@ void pushValues(){
 
 //Start der ISR jedes mal wenn TWINT gesetzt
 ISR(TWI_vect){
+  
+  digitalWrite(13, HIGH);
 //Interrups pausieren
 cli();
 //Wenn Counter=1, Slave-Adresse senden um zu schreiben (muss eigentlich nicht abgefragt werden) 
@@ -72,28 +68,20 @@ cli();
 
     
   }
+  digitalWrite(13, LOW);
 //Interrupts Aktivieren
 sei();
 }
 
 void i2c_setup() {
   
-/*
-
-//pullups aktivieren 
-  DDRC &= ~(1<< PC4);
-  DDRC &= ~(1<< PC5);
-  PORTC |= (1<< PC4);
-  PORTC |= (1<< PC5);
-
-  //!!!!!!!!!!!!!!!!!!!!!!*/
-
   
 //TWI Status Register auf 0 setzen
   TWSR = 0;
   
 // Set bit rate
-  TWBR = ((F_CPU / 100000) - 16) / 2;  
+  TWBR = ((F_CPU / 100000) - 16) / 2;
+  //                ^ Kann auf 400000 geändert werden (schneller, aber unsicherer)
  
 // (TWINT TWEA TWSTA TWSTO TWWC TWEN LEER! TWIE) als standard am Anfang 
   TWCR = 0b11000101;

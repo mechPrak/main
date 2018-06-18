@@ -6,39 +6,58 @@ MA               MB
 */
 #define I2CBUFFERWRITE 9
 
-#define sensor1 sensorwerte[1]
+#define sensor1 sensorwerte[3]
 #define sensor2 sensorwerte[0]
-#define sensor3 sensorwerte[3]
-#define sensor4 sensorwerte[2]
+#define sensor3 sensorwerte[2]
+#define sensor4 sensorwerte[1]
+
 volatile uint16_t i2c_bufferW[I2CBUFFERWRITE];
 
 static volatile uint16_t sensorwerte[6];
 //magic numbers die getestet werden müssen:
 uint16_t cruise_speed_lev1 = 300;
 uint16_t turn_speed_lev1 = 100;
-uint16_t schwarz_schwellenwert = 650;
+uint16_t schwarz_schwellenwert = 300;
 uint16_t drehzeit_ms = 2000;
-uint16_t bitfeld_zeit = 2000;
+uint16_t bitfeld_zeit = 300;
 uint16_t kreuzung_zeit = 200;
 //uint16_t steps_bis_kreuzung = 5;
 
 static volatile uint16_t bitwerte[3];
 
-void set_motor_speed_direction(uint16_t motor_speed_A, uint16_t motor_speed_B, uint16_t dir){
-  i2c_bufferW[0] = motor_speed_A;
-  i2c_bufferW[1] = motor_speed_B;
-  i2c_bufferW[2] = dir;
-  pushValues();
+void motorA_speed(uint16_t speed_A){
+  
+  i2c_bufferW[0] = speed_A;
+  
+  
+}
+
+void motorB_speed(uint16_t speed_B){
+  
+  i2c_bufferW[1] = speed_B;
+  
+  
+}
+
+void speed_direction(uint16_t speed_dir){
+
+  i2c_bufferW[2] = speed_dir;
+  
 }
 
 void fahre_speed_time(uint16_t v_mA, uint16_t v_mB, uint16_t speed_dir, uint16_t ms){
   
-  set_motor_speed_direction(v_mA, v_mB, speed_dir);
+  motorA_speed(v_mA);
+  motorB_speed(v_mB);
+  speed_direction(speed_dir);
+  pushValues();
   
   delay(ms);
   
-  set_motor_speed_direction(0, 0, speed_dir);
-  
+  motorA_speed(0);
+  motorB_speed(0);
+  speed_direction(0b00);
+  pushValues();
 }
 
 /*void fahre_steps(uint16_t steps){
@@ -51,42 +70,43 @@ void fahre_speed_time(uint16_t v_mA, uint16_t v_mB, uint16_t speed_dir, uint16_t
 }*/
 
 void fahre(){
-
+  speed_direction(0b00);
   if (sensor3 < sensor4){
-      
-      set_motor_speed_direction(cruise_speed_lev1 + 1, cruise_speed_lev1, 0b00);
+      //Serial.println("hallo");
+      motorA_speed(cruise_speed_lev1 + 100);
+      motorB_speed(cruise_speed_lev1);
+      pushValues();
       
     }else if(sensor3 > sensor4){
-      
-      set_motor_speed_direction(cruise_speed_lev1, cruise_speed_lev1 + 1, 0b00);
+      //Serial.println("welt");
+      motorA_speed(cruise_speed_lev1);
+      motorB_speed(cruise_speed_lev1 + 100);
+      pushValues();
     
     }
   
 }
 
 void fahre_bis_bitfeld(){
-  set_motor_speed_direction(cruise_speed_lev1, cruise_speed_lev1, 0b00);
+  motorA_speed(cruise_speed_lev1);
+  motorB_speed(cruise_speed_lev1);
+  pushValues();
   
   while(sensor1 < schwarz_schwellenwert && sensor2 < schwarz_schwellenwert){
-    
+    delay(100);
     fahre();
     
   }
-  set_motor_speed_direction(0, 0, 0b00);
+  motorA_speed(0);
+  motorB_speed(0);
+  pushValues();
   
 }
 
 void lese_bitfeld(){
-  
+
   uint16_t bitwerte_1[3];
-  bitwerte_1[0] = 0;
-  bitwerte_1[1] = 0;
-  bitwerte_1[2] = 0;
   uint16_t bitwerte_2[3];
-  bitwerte_2[0] = 0;
-  bitwerte_2[1] = 0;
-  bitwerte_2[2] = 0;
-  fahre_bis_kreuzung();
   for(uint8_t i = 0; i < 3; i++){
     
     if (sensor1 > schwarz_schwellenwert){
@@ -98,9 +118,8 @@ void lese_bitfeld(){
       bitwerte_2[i] = bitwerte_2[i] + 1;
   
     }
-
-    while(sensor1 > schwarz_schwellenwert || sensor2 > schwarz_schwellenwert){}
-    while(sensor1 < schwarz_schwellenwert && sensor2 < schwarz_schwellenwert){}
+    fahre_speed_time(turn_speed_lev1, turn_speed_lev1, 0b00, bitfeld_zeit);
+    fahre_bis_bitfeld();
 
     if (sensor1 > schwarz_schwellenwert){
     
@@ -111,8 +130,8 @@ void lese_bitfeld(){
       bitwerte_2[i] = bitwerte_2[i] + 2;
   
     }
-    while(sensor1 > schwarz_schwellenwert || sensor2 > schwarz_schwellenwert){}
-    while(sensor1 < schwarz_schwellenwert && sensor2 < schwarz_schwellenwert){}
+    fahre_speed_time(turn_speed_lev1, turn_speed_lev1, 0b00, bitfeld_zeit);
+    fahre_bis_bitfeld();
 
     if (sensor1 > schwarz_schwellenwert){
     
@@ -123,11 +142,11 @@ void lese_bitfeld(){
       bitwerte_2[i] = bitwerte_2[i] + 4;
   
     }
-    while(sensor1 > schwarz_schwellenwert || sensor2 > schwarz_schwellenwert){}
-    while(sensor1 < schwarz_schwellenwert && sensor2 < schwarz_schwellenwert){}
+    fahre_speed_time(turn_speed_lev1, turn_speed_lev1, 0b00, bitfeld_zeit);
+    fahre_bis_bitfeld();
 
   }
-  
+
   if (bitwerte_1[0] < bitwerte_2[0]){
     for(uint8_t i = 0; i < 3; i++){
       bitwerte[i] = bitwerte_1[i];
@@ -141,15 +160,18 @@ void lese_bitfeld(){
 }
 
 void fahre_bis_kreuzung(){
-  set_motor_speed_direction(cruise_speed_lev1, cruise_speed_lev1, 0b00);
+  motorA_speed(cruise_speed_lev1);
+  motorB_speed(cruise_speed_lev1);
+  pushValues();
   
   while(sensor1 < schwarz_schwellenwert && sensor2 < schwarz_schwellenwert){
-    
+    delay(100);
     fahre();
     
-    
   }
-  set_motor_speed_direction(0, 0, 0b00);
+  motorA_speed(0);
+  motorB_speed(0);
+  pushValues();
   
 }
 
@@ -163,7 +185,9 @@ void drehe_rechts(){
   */
   fahre_speed_time(turn_speed_lev1, turn_speed_lev1, 0b00, kreuzung_zeit);
   
-  set_motor_speed_direction(0, 0, 0b00);
+  motorA_speed(0);
+  motorB_speed(0);
+  pushValues();
   
   fahre_speed_time(turn_speed_lev1, turn_speed_lev1, 0b01,  drehzeit_ms);
 
@@ -183,7 +207,9 @@ void drehe_rechts(){
     fahre_speed_time(turn_speed_lev1, turn_speed_lev1, 0b00, kreuzung_zeit);
   }
 
-    set_motor_speed_direction(0, 0, 0b00);
+    motorA_speed(0);
+    motorB_speed(0);
+    pushValues();
 }
 
 void drehe_links(){
@@ -196,9 +222,11 @@ void drehe_links(){
   */
   fahre_speed_time(turn_speed_lev1, turn_speed_lev1, 0b00, kreuzung_zeit);
   
-  set_motor_speed_direction(0, 0, 0b00);
+  motorA_speed(0);
+  motorB_speed(0);
+  pushValues();
   
-  fahre_speed_time(turn_speed_lev1, turn_speed_lev1, 0b10, drehzeit_ms);
+fahre_speed_time(turn_speed_lev1, turn_speed_lev1, 0b10, drehzeit_ms);
 
   while(sensor3 > schwarz_schwellenwert && sensor4 > schwarz_schwellenwert){
 
@@ -216,7 +244,9 @@ void drehe_links(){
     fahre_speed_time(turn_speed_lev1, turn_speed_lev1, 0b00, kreuzung_zeit);
   }
 
-    set_motor_speed_direction(0, 0, 0b00);
+    motorA_speed(0);
+    motorB_speed(0);
+    pushValues();
 }
 
 
@@ -224,38 +254,21 @@ void setup() {
   Serial.begin(9600);
   sc_setup();
   i2c_setup();
-  set_motor_speed_direction(0, 0, 0b00);
+  motorA_speed(0);
+  motorB_speed(0);
+  speed_direction(0b00);
   //pushValues();
+  pinMode(13, OUTPUT);
+  digitalWrite(13, LOW);
 }
 
 void loop() {
-  //Serial.println("1:");
-  /*fahre_speed_time(300, 300, 0b00, 5000);
-  delay(3000);
-  //Serial.println("2:");
-  fahre_speed_time(300, 300, 0b11, 5000);
-  delay(3000);*/
-  //uint8_t counter = 0;
-  //if (counter == 0){
-    /*fahre_speed_time(300,300,0b00,2000);
-    delay(2000);
-    fahre_speed_time(300,300,0b11,2000);
-    delay(2000);*/
-    //fahre_bis_kreuzung();
-    
-  //}else{
-  //  fahre_bis_kreuzung();
-  //}
-  //counter++;
-  
-  //Serial.
-  //lese_bitfeld();
-  
-  //Serial.println(sensor1);
-  //Serial.println(sensor2);
-  /*for(uint8_t i=0; i<3; i++){
-    Serial.print(bitwerte[i]);
-  }*/
+  //fahre_speed_time(300, 300, 0b00, 5000);
+  //delay(3000);
+  //fahre_speed_time(300, 300, 0b11, 5000);
+  //delay(3000);
+  fahre_bis_kreuzung();
+  delay(2000);
   /*i2c_bufferW[0] = 10000;
   i2c_bufferW[1] = 10000;
   i2c_bufferW[2] = 0b00;
