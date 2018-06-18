@@ -53,6 +53,11 @@ volatile bool mlSneakEnabled = false;
 volatile bool mlStopSneak = false;
 volatile int ml_sneakDelay = MC_SNEAK_DELAY;
 
+/*
+ *    Geschwindigkeitskompensation, um die Linie zu halten (zwischen -1 und 1)
+ *    Bei einem Positiven Wert wird der rechte Motor beschleunigt
+ */
+volatile float mc_compensation = 0;            
 
 //DEBUG, REMOVE LATER
 volatile int state = 0;
@@ -101,7 +106,7 @@ void motorR() {
   state = ml_delay;
   
   //Prüfe, ob es an der Zeit ist, einen Step zu fahren
-  if (mr_counter >= mr_delay) {
+  if (mr_counter >= mr_delay - (mr_delay * mc_compensation)) {
 	  //Prüfe ob noch ein Step gefahren werden muss
     if (mr_stepCount < mr_totalSteps || (mrSneakEnabled && !mrStopSneak)) {
       digitalWrite(MR_STEP, HIGH);							//STEP fahren
@@ -149,7 +154,7 @@ void motorR() {
 			  mr_n--;
 			  mr_delay = (mr_delay * (4 * mr_n + 1)) / (4 * mr_n + 1 - 2);
 		}
-	
+
 	//Neuen Counter für Delay setzen
     mr_counter = 0;
   }
@@ -162,7 +167,7 @@ void motorL() {
   
   
   //Prüfe, ob es an der Zeit ist, einen Step zu fahren
-  if (ml_counter >= ml_delay) {
+  if (ml_counter >= ml_delay + (mr_delay * mc_compensation)) {
     //Prüfe ob noch ein Step gefahren werden muss
     if (ml_stepCount < ml_totalSteps || (mlSneakEnabled && !mlStopSneak)) {
       digitalWrite(ML_STEP, HIGH);              //STEP fahren
@@ -212,6 +217,7 @@ void motorL() {
       ml_n--;
       ml_delay = (ml_delay * (4 * ml_n + 1)) / (4 * ml_n + 1 - 2);
     }
+
   
   //Neuen Counter für Delay setzen
     ml_counter = 0;
@@ -247,38 +253,6 @@ void ml_move(long steps) {
   ml_movementDone = false;
 }
 
-void mr_setAcc(int acc){
-  mr_c0 = acc;
-}
-
-void ml_setAcc(int acc){
-  ml_c0 = acc;
-}
-
-void mr_setMinDelay(int del){
-  mr_minDelay = del;
-}
-
-void ml_setMinDelay(int del){
-  ml_minDelay = del;
-}
-
-void mr_enable(){
-  digitalWrite(MR_ENABLE, LOW);
-}
-
-void ml_enable(){
-  digitalWrite(ML_ENABLE, LOW);
-}
-
-void mr_disable(){
-  digitalWrite(MR_ENABLE, HIGH);
-}
-
-
-void ml_disable(){
-  digitalWrite(ML_ENABLE, HIGH);
-}
 
 
 void loop() {
@@ -295,8 +269,12 @@ void loop() {
   ml_setSneak(true);
   ml_setStopSneak(false);
   
-  for(int i = 0; i < 10000; i++){
-    Serial.println(state);
+  for (int i = 0; i < 50; i++){
+    mc_setCompensation(0.1);
+    delay(100);
+    
+    mc_setCompensation(-0.1);
+    delay(100);
   }
  
   //Schleichen deaktivieren
@@ -318,6 +296,13 @@ void loop() {
 //		SETTER
 //-----------------------
 
+void mc_setCompensation(float compensation){
+  //Werte außerhalb des Bereichs ignorieren
+  if(compensation < -1 || compensation > 1)return;
+
+  mc_compensation = compensation;
+}
+
 void mr_setSneak(bool sneakEnabled){
   mrSneakEnabled = sneakEnabled;
 }
@@ -332,4 +317,39 @@ void mr_setStopSneak(bool stopSneak){
 
 void ml_setStopSneak(bool stopSneak){
   mlStopSneak = stopSneak;
+}
+
+void mr_setAcc(int acc){
+  mr_c0 = acc;
+}
+
+void ml_setAcc(int acc){
+  ml_c0 = acc;
+}
+
+void mr_setMinDelay(int del){
+  mr_minDelay = del;
+}
+
+void ml_setMinDelay(int del){
+  ml_minDelay = del;
+}
+
+
+//Motoren ein und ausschalten
+void mr_enable(){
+  digitalWrite(MR_ENABLE, LOW);
+}
+
+void ml_enable(){
+  digitalWrite(ML_ENABLE, LOW);
+}
+
+void mr_disable(){
+  digitalWrite(MR_ENABLE, HIGH);
+}
+
+
+void ml_disable(){
+  digitalWrite(ML_ENABLE, HIGH);
 }
