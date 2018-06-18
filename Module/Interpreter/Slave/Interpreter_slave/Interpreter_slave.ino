@@ -14,17 +14,18 @@ void setup() {
   // put your setup code here, to run once:
   motor_setup(); //setup() vom Motor-Modul
   i2c_setup(); //setup() vom i2c-Modul
-  //Serial.begin(115200);
+  Serial.begin(9600);
 }
 
 void loop() {
   if(i2cNewData){
+    
     delay(100);
     i2cNewData=0;
     motorA_speed(i2c_16BitArray[0]);
-    Serial.println(i2c_16BitArray[0]);
+
     motorB_speed(i2c_16BitArray[1]);
-    Serial.println(i2c_16BitArray[1]);
+   
     
     if(i2c_16BitArray[2] & 0b01){
       motorA_direction(CCW);

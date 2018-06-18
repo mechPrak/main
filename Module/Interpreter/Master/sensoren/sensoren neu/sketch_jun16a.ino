@@ -34,7 +34,7 @@ Array[11] "sensorwerte"
 11. Abstandssensor
 +++++Schnittstelle+++++
 */
-#define MPX_Z PC0
+#define MPX_Z PC2
 #define MPX_S0 PD2
 #define MPX_S1 PD3
 #define MPX_S2 PD4
@@ -45,12 +45,12 @@ Array[11] "sensorwerte"
 #define ADC_DDR DDRC
 #define MPX_DDR DDRD
 
-//static volatile uint16_t sensorwerte[11];
+static volatile uint16_t sensorwerte[6];
 static volatile uint16_t buffer_sensorwerte[6];
 static volatile uint8_t sc_wert_counter = 0;
 
 void sc_setup() {
-  //Serial.begin(115200);
+  Serial.begin(9600);
   
   //ADC_DDR &= ~(1<<HELL1);
   //ADC_DDR &= ~(1<<HELL2);
@@ -63,6 +63,7 @@ void sc_setup() {
   //ADMUX = 0b01000000; // ADC0
   ADCSRA = 0b10001111; //vorher: 0b10100111 2. 0b10101011;
   ADCSRB = 0b00000000;
+  
   //ADCSRA |= (1 << ADSC); //ADC starten
   sei();
   sc_refreshValues();
@@ -93,39 +94,37 @@ void sc_refreshValues() {
 
 ISR(ADC_vect){
   
-  
-  if(sc_wert_counter < 5){
     buffer_sensorwerte[sc_wert_counter] = ADC;
-    sc_wert_counter++;
-    MPX_PORT = (sc_wert_counter << 2);
-    ADCSRA |= (1 << ADSC);
-  }else if(sc_wert_counter == 5){
-    buffer_sensorwerte[sc_wert_counter] = ADC;
-    /*cli();
-    for(uint8_t j = 0; j<6; j++){
-      Serial.print(sensorwerte[j]);
-      Serial.print(" ");
+
+    
+    
+    if (sc_wert_counter < 5){
+      sc_wert_counter++;
+      MPX_PORT = (sc_wert_counter << 2);
+      ADCSRA |= (1 << ADSC);
+    }else if (sc_wert_counter == 5){
+       cli();
+       for(uint8_t j = 0; j < 6; j++){
+        Serial.print(sensorwerte[j]);
+        Serial.print(" ");
+      }
+      Serial.println();
+      sc_refreshValues();
+      sei();
     }
-    Serial.println();
-    sei();*/
-   
-    sc_refreshValues();
-  }
-  
-  
 }
 
-/*void setup(){
+void setup(){
   sc_setup();
-  sc_refreshValues();
-}*/
-/*void loop(){
-  sc_refreshValues();
+  
+}
+void loop(){
+ /* sc_refreshValues();
   for(uint8_t j = 0; j<11;j++){
       Serial.print(sensorwerte[j]);
       Serial.print(" ");
   }
     Serial.println();
-    sei();
-  }*/
+    sei();*/
+  }
 
