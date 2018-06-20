@@ -2,7 +2,10 @@
 //get pos und set pos
 // compensate
 
-
+#define PIN_LS_LL PA2
+#define PIN_LS_LM PA3
+#define PIN_LS_RM PA4
+#define PIN_LS_RR PA5
 
 HardwareTimer motor_timer(2);
 
@@ -54,10 +57,10 @@ volatile bool mlStopSneak = false;
 volatile int ml_sneakDelay = MC_SNEAK_DELAY;
 
 /*
- *    Geschwindigkeitskompensation, um die Linie zu halten (zwischen -1 und 1)
- *    Bei einem Positiven Wert wird der rechte Motor beschleunigt
- */
-volatile float mc_compensation = 0;            
+      Geschwindigkeitskompensation, um die Linie zu halten (zwischen -1 und 1)
+      Bei einem Positiven Wert wird der rechte Motor beschleunigt
+*/
+volatile float mc_compensation = 0;
 
 //DEBUG, REMOVE LATER
 volatile int state = 0;
@@ -66,6 +69,11 @@ void setup() {
   m_init();
   mr_enable();
   ml_enable();
+
+  pinMode(PIN_LS_LL, INPUT);
+  pinMode(PIN_LS_LM, INPUT);
+  pinMode(PIN_LS_RM, INPUT);
+  pinMode(PIN_LS_RR, INPUT);
 }
 
 void m_init() {
@@ -94,75 +102,75 @@ void m_init() {
   motor_timer.resume();
 }
 
-void motor(){
+void motor() {
   motorR();
   motorL();
 }
 
 void motorR() {
   state = ml_delay;
-  
+
   //Prüfe, ob es an der Zeit ist, einen Step zu fahren
   if (mr_counter >= mr_delay - (mr_delay * mc_compensation)) {
-	  //Prüfe ob noch ein Step gefahren werden muss
+    //Prüfe ob noch ein Step gefahren werden muss
     if (mr_stepCount < mr_totalSteps || (mrSneakEnabled && !mrStopSneak)) {
       digitalWrite(MR_STEP, HIGH);							//STEP fahren
       digitalWrite(MR_STEP, LOW);
       mr_stepCount++;										//Relative Position updaten
       mr_stepPosition += mr_dir;							//Absolute Position updaten
     }
-	//Motor rechts Bewegung abgeschlossen
+    //Motor rechts Bewegung abgeschlossen
     else {
       mr_movementDone = true;								//
     }
-	
-	//Beschleunigen
+
+    //Beschleunigen
     if (mr_rampUpStepCount == 0) {
       mr_n++;
       mr_delay = mr_delay - (2 * mr_delay) / (4 * mr_n + 1);
-	  //Maximale Geschwindigkeit wurde erreicht
+      //Maximale Geschwindigkeit wurde erreicht
       if (mr_delay <= mr_minDelay) {
         mr_delay = mr_minDelay;
         mr_rampUpStepCount = mr_stepCount;
 
       }
-	  
-	  //Vorzeitiges Abbremsen (Falls mr_totalSteps nicht ausreicht um auf maximale Geschwindigkeit zu beschleunigen)
+
+      //Vorzeitiges Abbremsen (Falls mr_totalSteps nicht ausreicht um auf maximale Geschwindigkeit zu beschleunigen)
       if (mr_stepCount >= mr_totalSteps / 2) {
         mr_rampUpStepCount = mr_stepCount;
       }
     }
-	
-	//Bremsen
-      //Langsame Geschwindigkeit halten (Schleichen)
-    else if(mr_delay >= mr_sneakDelay && mrSneakEnabled == true){
-        
-       //Schleich-Delay setzen
-       mr_delay = mr_sneakDelay;
-      
+
+    //Bremsen
+    //Langsame Geschwindigkeit halten (Schleichen)
+    else if (mr_delay >= mr_sneakDelay && mrSneakEnabled == true) {
+
+      //Schleich-Delay setzen
+      mr_delay = mr_sneakDelay;
+
       //Schleichen beenden
-      if(mrStopSneak){
+      if (mrStopSneak) {
         //Abbruchbedingung setzen
         mr_stepCount = mr_totalSteps;
       }
     }
-			//Abbremsen
-		else if (mr_stepCount >= mr_totalSteps - mr_rampUpStepCount) {   
-			  mr_n--;
-			  mr_delay = (mr_delay * (4 * mr_n + 1)) / (4 * mr_n + 1 - 2);
-		}
+    //Abbremsen
+    else if (mr_stepCount >= mr_totalSteps - mr_rampUpStepCount) {
+      mr_n--;
+      mr_delay = (mr_delay * (4 * mr_n + 1)) / (4 * mr_n + 1 - 2);
+    }
 
-	//Neuen Counter für Delay setzen
+    //Neuen Counter für Delay setzen
     mr_counter = 0;
   }
-  
+
   //Counter für Delay inkrementieren
   mr_counter++;
 }
 
 void motorL() {
-  
-  
+
+
   //Prüfe, ob es an der Zeit ist, einen Step zu fahren
   if (ml_counter >= ml_delay + (mr_delay * mc_compensation)) {
     //Prüfe ob noch ein Step gefahren werden muss
@@ -172,54 +180,54 @@ void motorL() {
       ml_stepCount++;                   //Relative Position updaten
       ml_stepPosition += ml_dir;              //Absolute Position updaten
     }
-  //Motor rechts Bewegung abgeschlossen
+    //Motor rechts Bewegung abgeschlossen
     else {
       ml_movementDone = true;               //
     }
-  
-  //Beschleunigen
+
+    //Beschleunigen
     if (ml_rampUpStepCount == 0) {
       ml_n++;
       ml_delay = ml_delay - (2 * ml_delay) / (4 * ml_n + 1);
-    
-    //Maximale Geschwindigkeit wurde erreicht
+
+      //Maximale Geschwindigkeit wurde erreicht
       if (ml_delay <= ml_minDelay) {
         ml_delay = ml_minDelay;
         ml_rampUpStepCount = ml_stepCount;
       }
-    
-    //Vorzeitiges Abbremsen (Falls ml_totalSteps nicht ausreicht um auf maximale Geschwindigkeit zu beschleunigen)
+
+      //Vorzeitiges Abbremsen (Falls ml_totalSteps nicht ausreicht um auf maximale Geschwindigkeit zu beschleunigen)
       if (ml_stepCount >= ml_totalSteps / 2) {
         ml_rampUpStepCount = ml_stepCount;
       }
     }
 
-     //Langsame Geschwindigkeit halten (Schleichen)
-    else if(ml_delay >= ml_sneakDelay && mlSneakEnabled == true){
+    //Langsame Geschwindigkeit halten (Schleichen)
+    else if (ml_delay >= ml_sneakDelay && mlSneakEnabled == true) {
 
-        state = ml_delay;
-        
-       //Schleich-Delay setzen
-       ml_delay = ml_sneakDelay;
-      
+      state = ml_delay;
+
+      //Schleich-Delay setzen
+      ml_delay = ml_sneakDelay;
+
       //Schleichen beenden
-      if(mlStopSneak){
+      if (mlStopSneak) {
         //Abbruchbedingung setzen
         ml_stepCount = ml_totalSteps;
       }
     }
-    
+
     //weiteres Abbremsen
     else if (ml_stepCount >= ml_totalSteps - ml_rampUpStepCount ) {
       ml_n--;
       ml_delay = (ml_delay * (4 * ml_n + 1)) / (4 * ml_n + 1 - 2);
     }
 
-  
-  //Neuen Counter für Delay setzen
+
+    //Neuen Counter für Delay setzen
     ml_counter = 0;
   }
-  
+
   //Counter für Delay inkrementieren
   ml_counter++;
 }
@@ -228,7 +236,7 @@ void motorL() {
 void mr_move(long steps) {
   //Motor ist um 180° gedreht eingebaut => Drehrichtung umkehren
   steps = -steps;
-  
+
   digitalWrite(MR_DIR, steps < 0 ? HIGH : LOW);
   mr_dir = steps > 0 ? 1 : -1;
   mr_totalSteps = abs(steps);
@@ -253,31 +261,41 @@ void ml_move(long steps) {
 
 
 void loop() {
-  
   mr_setMinDelay(10);
   mr_setAcc(1000);
   mr_move(10000);
   mr_setSneak(true);
   mr_setStopSneak(false);
-  
+
   ml_setMinDelay(10);
   ml_setAcc(1000);
   ml_move(10000);
   ml_setSneak(true);
   ml_setStopSneak(false);
-  
-  for (int i = 0; i < 50; i++){
-    mc_setCompensation(0.1);
-    delay(20);
-    
-    mc_setCompensation(-0.1);
-    delay(20);
+
+  for (int i = 0; i < 100; i++) {
+    if (analogRead(PIN_LS_LM) > analogRead(PIN_LS_RM)) {
+      mc_setCompensation(-0.1);
+    } else {
+      mc_setCompensation(0.1);
+    }
+    delay(50);
   }
- 
-  //Schleichen deaktivieren
-  mr_setStopSneak(true);
-  ml_setStopSneak(true);
-  delay(3000);
+
+
+  //
+  //  for (int i = 0; i < 50; i++){
+  //    mc_setCompensation(0.1);
+  //    delay(20);
+  //
+  //    mc_setCompensation(-0.1);
+  //    delay(20);
+  //  }
+  //
+  //  //Schleichen deaktivieren
+  //  mr_setStopSneak(true);
+  //  ml_setStopSneak(true);
+  //  delay(3000);
 }
 
 
@@ -293,60 +311,60 @@ void loop() {
 //		SETTER
 //-----------------------
 
-void mc_setCompensation(float compensation){
+void mc_setCompensation(float compensation) {
   //Werte außerhalb des Bereichs ignorieren
-  if(compensation < -1 || compensation > 1)return;
+  if (compensation < -1 || compensation > 1)return;
 
   mc_compensation = compensation;
 }
 
-void mr_setSneak(bool sneakEnabled){
+void mr_setSneak(bool sneakEnabled) {
   mrSneakEnabled = sneakEnabled;
 }
 
-void ml_setSneak(bool sneakEnabled){
+void ml_setSneak(bool sneakEnabled) {
   mlSneakEnabled = sneakEnabled;
 }
 
-void mr_setStopSneak(bool stopSneak){
+void mr_setStopSneak(bool stopSneak) {
   mrStopSneak = stopSneak;
 }
 
-void ml_setStopSneak(bool stopSneak){
+void ml_setStopSneak(bool stopSneak) {
   mlStopSneak = stopSneak;
 }
 
-void mr_setAcc(int acc){
+void mr_setAcc(int acc) {
   mr_c0 = acc;
 }
 
-void ml_setAcc(int acc){
+void ml_setAcc(int acc) {
   ml_c0 = acc;
 }
 
-void mr_setMinDelay(int del){
+void mr_setMinDelay(int del) {
   mr_minDelay = del;
 }
 
-void ml_setMinDelay(int del){
+void ml_setMinDelay(int del) {
   ml_minDelay = del;
 }
 
 
 //Motoren ein und ausschalten
-void mr_enable(){
+void mr_enable() {
   digitalWrite(MR_ENABLE, LOW);
 }
 
-void ml_enable(){
+void ml_enable() {
   digitalWrite(ML_ENABLE, LOW);
 }
 
-void mr_disable(){
+void mr_disable() {
   digitalWrite(MR_ENABLE, HIGH);
 }
 
 
-void ml_disable(){
+void ml_disable() {
   digitalWrite(ML_ENABLE, HIGH);
 }

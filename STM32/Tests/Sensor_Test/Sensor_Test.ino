@@ -10,7 +10,7 @@ void setup() {
   pinMode(PIN_LS_RM, INPUT);
   pinMode(PIN_LS_RR, INPUT);
 
-  Serial.begin(9600);
+  Serial.begin(115200);
   Serial.println("Test2");
 }
 
