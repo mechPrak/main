@@ -13,17 +13,14 @@ HardwareTimer motor_timer(2);
 //Geschwindigkeitswerte
 #define MC_MIN_DELAY  10
 #define MC_SNEAK_DELAY  20
-#define MC_INITIAL_DELAY 1000
+#define MC_INITIAL_DELAY 200
 
-//Rampingtabelle
-#define MC_RAMPING_TABLE_ENTRIES 119
 
 volatile uint32_t mc_delayCounter[2] = {0,0};
 volatile uint32_t mc_rampingDelayCounter[2] = {0,0};
 volatile uint32_t mc_rampingTablePos[2] = {0,0};
 
-volatile uint32_t mc_rampingTableSteps = 1;
-volatile uint32_t mc_maxSpeedSteps[2] = {0,0};
+volatile uint32_t mc_rampingTableSteps = 0;
 volatile uint32_t mc_stepsTotal[2] = {0,0};
 volatile uint32_t mc_stepsTotalHalf[2] = {0,0};
 volatile uint32_t mc_stepsMade[2] = {0,0};
@@ -38,7 +35,9 @@ volatile uint32_t debugVariable2 = 0;
 
 //volatile uint32_t *mc_rampingTable;
 volatile uint32_t rampingTableLenght = 0;
-volatile uint32_t mc_rampingTable[200][2];
+volatile uint32_t mc_rampingTable[300][2];
+
+
 
 //State-System für MotorController
 enum  {
@@ -184,15 +183,17 @@ void setup() {
 void loop() {
 	debugVariable1 = 0;
 	debugVariable2 = 0;
-	mc_move(0,100000);
-	mc_move(1,100000);
+	mc_move(1,3200);
 	
+	delay(2000);
+	
+	/*
 	for(volatile int i = 0; i < 100000; i++){
 		Serial.print(debugVariable1);
 		Serial.print(", ");
 		Serial.println(debugVariable2);
-	}
-	
+	}	
+	*/
 }
 
 
@@ -225,21 +226,37 @@ void calculateRampingTable(){
 	float delay = MC_INITIAL_DELAY;
 	uint32_t currentDelayInt = 0;
 	
-	while(delay > MC_MIN_DELAY){
-		if((uint16_t)delay != currentDelayInt){
+	rampingTableLenght --;
+	while((uint16_t)delay > MC_MIN_DELAY){
+		if((uint16_t)delay == currentDelayInt){
+			mc_rampingTable[rampingTableLenght][1] ++;
+		} 
+		else {
+			rampingTableLenght ++;
 			mc_rampingTable[rampingTableLenght][0] = (uint16_t)delay;
 			mc_rampingTable[rampingTableLenght][1] ++;
-			rampingTableLenght ++;
-			currentDelayInt = delay;
-		} else {
-			mc_rampingTable[rampingTableLenght][1] ++;
+			currentDelayInt = (uint16_t)delay;			
 		}
 		
-		delay = delay - (2 * delay) / (4 * mc_rampingTableSteps + 1);
-		mc_rampingTableSteps++;		
+		mc_rampingTableSteps++;	
+		delay = delay - (2 * delay) / (4 * mc_rampingTableSteps + 1);				
 	}
+	rampingTableLenght++;
 	
-	//mc_rampingTableSteps -= mc_rampingTable[rampingTableLenght][1] + 2;
+	
+	//DEBUG
+	/*
+	Serial.print("Total steps: ");
+	Serial.println(mc_rampingTableSteps);
+	Serial.print("Delay entries: ");
+	Serial.println(rampingTableLenght);
+	for(uint32_t i = 0; i < rampingTableLenght; i++){
+		Serial.print(mc_rampingTable[i][0]);
+		Serial.print(", ");
+		Serial.print(mc_rampingTable[i][1]);
+		Serial.println();
+	}
+	*/
 }
 
 void motor_ISR(){
@@ -286,7 +303,6 @@ void motor_ISR(){
 			case MC_RAMP_DOWN:
 				// Prüfen, ob ein Step gefahren werden muss
 				if(mc_delayCounter[i] > mc_rampingTable[mc_rampingTablePos[i]][0]){
-					debugVariable2 = mc_rampingTable[mc_rampingTablePos[i]][0];
 					mc_motorStep(i);				
 					mc_stepsMade[i]++;													
 					// Prüfen, ob der nächste Delay ausgewählt werden muss
@@ -322,7 +338,6 @@ void mc_motorStep(uint8_t motor){
 		case 0:
 			digitalWrite(PIN_MR_STEP, HIGH);
 			digitalWrite(PIN_MR_STEP, LOW);
-			debugVariable1++;
 		break;
 		case 1:
 			digitalWrite(PIN_ML_STEP, HIGH);
