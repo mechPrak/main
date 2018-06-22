@@ -22,6 +22,6 @@ void loop() {
   Serial.print(analogRead(PIN_LS_RM));
   Serial.print(" ");
   Serial.println(analogRead(PIN_LS_RR));
-  delay(10);
+  delay(5);
 }
 
