@@ -34,6 +34,8 @@ void setup() {
 	mc_init();
 	s_init();
 	i_init();
+	
+	pinMode(PC13,OUTPUT);	
 }
 
 void loop() {
@@ -57,12 +59,4 @@ void loop() {
 	
 	delay(3000);
 	*/
-}
-
-void mc_compensate(){
-	float ratio = (float)s_getLightSenor(S_LS_RM) / (float)s_getLightSenor(S_LS_LM);
-	ratio = log(ratio);
-	ratio = ratio / 10;
-	mc_setCompensation(MC_RIGHT_MOTOR, ratio);
-	mc_setCompensation(MC_LEFT_MOTOR, -ratio);
 }

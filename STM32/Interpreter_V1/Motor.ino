@@ -222,6 +222,14 @@ void mc_setCompensation(uint32_t motor, float compensation){
 	}
 }
 
+void mc_compensate(){
+	float ratio = (float)s_getLightSenor(S_LS_RM) / (float)s_getLightSenor(S_LS_LM);
+	ratio = log(ratio);
+	ratio = ratio / 10;
+	mc_setCompensation(MC_RIGHT_MOTOR, ratio);
+	mc_setCompensation(MC_LEFT_MOTOR, -ratio);
+}
+
 void mc_setSneak(uint32_t motor, bool sneak){
 	if(sneak){
 		mc_sneakEnable[motor] = true;
@@ -241,4 +249,9 @@ void mc_stopSneak(uint32_t motor){
 void mc_stopMotors(){
 	mc_currentState[MC_LEFT_MOTOR] = MC_STOP;
 	mc_currentState[MC_RIGHT_MOTOR] = MC_STOP;
+}
+
+
+uint32_t mc_getMotorState(uint32_t motor){
+	return mc_currentState[motor];
 }
