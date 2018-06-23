@@ -35,7 +35,8 @@ void setup() {
 	s_init();
 	i_init();
 	
-	pinMode(PC13,OUTPUT);	
+	pinMode(PC13,OUTPUT);
+	delay(3000);	
 }
 
 void loop() {

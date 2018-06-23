@@ -10,8 +10,8 @@ HardwareTimer motor_timer(2);
 #define PIN_ML_ENABLE PB0
 
 //Geschwindigkeitswerte
-#define MC_MIN_DELAY  50
-#define MC_SNEAK_DELAY  200
+#define MC_MIN_DELAY  20
+#define MC_SNEAK_DELAY  50
 #define MC_INITIAL_DELAY 500
 
 
@@ -182,12 +182,33 @@ void mc_ISR(){
 	}	
 }
 
-void mc_move(uint8_t motor, uint32_t steps){
+void mc_move(uint8_t motor, int32_t steps){
+	if(steps < 0){
+		Serial.println("Backwards");
+		switch(motor){
+			case MC_LEFT_MOTOR:
+				digitalWrite(PIN_ML_DIR, HIGH);
+				break;
+			case MC_RIGHT_MOTOR:
+				digitalWrite(PIN_MR_DIR, LOW);
+				break;
+		}
+	} else {
+		Serial.println("Forwoard");
+		switch(motor){
+			case MC_LEFT_MOTOR:
+				digitalWrite(PIN_ML_DIR, LOW);
+				break;
+			case MC_RIGHT_MOTOR:
+				digitalWrite(PIN_MR_DIR, HIGH);
+				break;
+		}
+	}
 	mc_delayCounter[motor] = 0;
 	mc_rampingTablePos[motor] = 0;
 	mc_rampingDelayCounter[motor] = 0;
 	mc_stepsMade[motor] = 0;
-	mc_stepsTotal[motor] = steps;	
+	mc_stepsTotal[motor] = abs(steps);	
 	mc_stepsTotalHalf[motor] = steps / 2;	
 	mc_currentState[motor] = MC_RAMP_UP;
 }
@@ -230,6 +251,11 @@ void mc_compensate(){
 	mc_setCompensation(MC_LEFT_MOTOR, -ratio);
 }
 
+void mc_resetCompensation(){
+	mc_compensationInt[MC_LEFT_MOTOR] = 0;
+	mc_compensationInt[MC_RIGHT_MOTOR] = 0;
+}
+
 void mc_setSneak(uint32_t motor, bool sneak){
 	if(sneak){
 		mc_sneakEnable[motor] = true;
@@ -251,7 +277,10 @@ void mc_stopMotors(){
 	mc_currentState[MC_RIGHT_MOTOR] = MC_STOP;
 }
 
-
 uint32_t mc_getMotorState(uint32_t motor){
 	return mc_currentState[motor];
+}
+
+uint32_t mc_getSteps(uint32_t motor){
+	return mc_stepsMade[motor];
 }
