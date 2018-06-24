@@ -10,12 +10,12 @@ HardwareTimer motor_timer(2);
 #define PIN_ML_ENABLE PB0
 
 //Geschwindigkeitswerte
-#define MC_MIN_DELAY  200
-#define MC_SNEAK_DELAY  301
-#define MC_INITIAL_DELAY 1000
+#define MC_MIN_DELAY  15								//Minimaler Delay, mit dem gefahren werden kann
+#define MC_SNEAK_DELAY  100								//Delay, auf den beim Schleichen abgebremst wird
+#define MC_INITIAL_DELAY 1000							//Anfänglicher Delay in der Ramping-Delay
 
 
-volatile uint32_t mc_delayCounter[2] = {0,0};
+volatile uint32_t mc_delayCounter[2] = {0,0};			
 volatile uint32_t mc_rampingDelayCounter[2] = {0,0};
 volatile uint32_t mc_rampingTablePos[2] = {0,0};
 
@@ -184,7 +184,6 @@ void mc_ISR(){
 
 void mc_move(uint8_t motor, int32_t steps){
 	if(steps < 0){
-		Serial.println("Backwards");
 		steps = -steps;
 		switch(motor){
 			case MC_LEFT_MOTOR:
@@ -195,7 +194,6 @@ void mc_move(uint8_t motor, int32_t steps){
 				break;
 		}
 	} else {
-		Serial.println("Forward");
 		switch(motor){
 			case MC_LEFT_MOTOR:
 				digitalWrite(PIN_ML_DIR, LOW);
@@ -245,7 +243,7 @@ void mc_setCompensation(uint32_t motor, float compensation){
 }
 
 void mc_compensate(){
-	float ratio = (float)s_getLightSenor(S_LS_RM) / (float)s_getLightSenor(S_LS_LM);
+	float ratio = (float)sn_getLightSenor(S_LS_RM) / (float)sn_getLightSenor(S_LS_LM);
 	ratio = log(ratio);
 	ratio = ratio / 10;
 	mc_setCompensation(MC_RIGHT_MOTOR, ratio);

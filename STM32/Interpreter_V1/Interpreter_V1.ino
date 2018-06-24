@@ -1,70 +1,49 @@
+
+//Mit diesen Variablen können während des Interrupts Werte ausgegeben werden
 volatile float debugVariable1 = 0;
 volatile float debugVariable2 = 0;
 
 enum{
-    MC_LEFT_MOTOR,
-	MC_RIGHT_MOTOR,
+    MC_LEFT_MOTOR,				//Linker Motor
+	MC_RIGHT_MOTOR,				//Rechter Motor
 	
-	MC_RAMP_UP,
-	MC_COAST,
-	MC_RAMP_DOWN,
-	MC_SNEAK,
-	MC_STOP,
+	MC_RAMP_UP,					//Motor-State: Beschleunigen
+	MC_COAST,					//Motor-State: Geschwindigket halten
+	MC_RAMP_DOWN,				//Motor-State: Bremsen
+	MC_SNEAK,					//Motor-State: Schleichen (um auf Intersection zu warten
+	MC_STOP,					//Motor-State: Motor anhalten
 	
-	S_LS_LL,
-	S_LS_LM,
-	S_LS_RM,
-	S_LS_RR,
+	S_LS_LL,					//Lichtsenor: Links außen
+	S_LS_LM,					//Lichtsenor: Links Mitte
+	S_LS_RM,					//Lichtsenor: Rechts Mitte
+	S_LS_RR,					//Lichtsenor: Rechts außen
 	
-	I_DRIVE_INTERSECTION,
-	I_LAUNCH,
-	I_TURN_RIGHT,
-	I_TURN_LEFT,
-	I_READ_OBSTACLE,
-	I_PREPARE_DELIVER,
-	I_DELIVER,
-	I_WAIT_BUTTON
+	I_DRIVE_INTERSECTION,		//Interpreter-State: Fahre bis zur nächsten Kreuzung
+	I_LAUNCH,					//Interpreter-State: Erster Status, aus Anfangsfeld losfahren, kalibrieren und Bitfelder lesen
+	I_TURN_RIGHT,				//Interpreter-State: Rechts um eine Kurve fahren
+	I_TURN_LEFT,				//Interpreter-State: Links um eine Kurve fahren
+	I_READ_OBSTACLE,			//Interpreter-State: Messen, ob ein Hinderniss im Weg ist
+	I_PREPARE_DELIVER,			//Interpreter-State: Ablage eines Packetes vorbereiten
+	I_DELIVER,					//Interpreter-State: Packet ablegen
+	I_WAIT_BUTTON				//Interpreter-State: Auf Button warten
 
 };
 
 void setup() {
-	Serial.begin(115200);  
+	//Serielle Kommunikation starten
+	Serial.begin(115200); 
+	
 	delay(1000);
+	
+	//Untergruppen initialisieren
 	mc_init();
-	s_init();
+	sn_init();
 	i_init();
-	
-	pinMode(PC13,OUTPUT);
-	
-	pinMode(PB12,OUTPUT);
-	pinMode(PB13,OUTPUT);
-	pinMode(PB14,OUTPUT);
-	
-	digitalWrite(PB12, HIGH);
-	digitalWrite(PB13, HIGH);
-	digitalWrite(PB14, HIGH);
-	
-	delay(3000);	
+	db_init();
 }
 
 void loop() {
 	i_loop();
-		
-	/*
-	uint32_t move = true;
-	while(move){
-		
-		mc_compensate();		
-		
-		if(s_getLightSenor(S_LS_RR) > 2000){
-			mc_stopSneak(MC_LEFT_MOTOR);
-			mc_stopSneak(MC_RIGHT_MOTOR);
-			move = false;
-		}
-		
-		delay(10);
-	}
 	
-	delay(3000);
-	*/
+	//sn_debug();
 }
