@@ -11,7 +11,8 @@ Ideen zu späteren optimierung:
 #define I_TURN_STEPS_OUTER 2350
 #define I_TURN_STEPS_INNER 700
 
-#define I_STEPS_AFTER_LINE 200
+#define I_LAUNCH_STEPS 3500
+
 
 uint32_t i_state = I_WAIT_BUTTON;
 
@@ -21,7 +22,11 @@ uint32_t i_state_initialiser = true;
 uint32_t i_counter = 0;
 uint32_t i_wait = false;
 
+//Bitfelder
+
+
 void i_init(){
+	/*
 	i_state_order_lvl_1[0][0] = I_DRIVE_INTERSECTION;
 	i_state_order_lvl_1[0][1] = 15000;	
 	i_state_order_lvl_1[1][0] = I_TURN_RIGHT;
@@ -59,7 +64,7 @@ void i_init(){
 	i_state_order_lvl_1[17][0] = I_TURN_RIGHT;
 	
 	i_state_order_lvl_1[18][0] = I_DRIVE_INTERSECTION;
-	i_state_order_lvl_1[18][1] = 4000;
+	i_state_order_lvl_1[18][1] = 4500;
 	i_state_order_lvl_1[19][0] = I_TURN_RIGHT;
 	
 	i_state_order_lvl_1[20][0] = I_DRIVE_INTERSECTION;
@@ -71,21 +76,26 @@ void i_init(){
 	i_state_order_lvl_1[23][0] = I_TURN_LEFT;
 	
 	i_state_order_lvl_1[24][0] = I_DRIVE_INTERSECTION;
-	i_state_order_lvl_1[24][1] = 4000;
-	
-	
+	i_state_order_lvl_1[24][1] = 4000;	
 	
 	i_state_order_lvl_1[25][0] = I_WAIT_BUTTON;
 	
+	*/
+	i_state_order_lvl_1[0][0] = I_LAUNCH;
+	i_state_order_lvl_1[1][0] = I_WAIT_BUTTON;
+	
 	i_state = i_state_order_lvl_1[0][0];
+	
 }
 
 void i_loop(){
 	switch(i_state){
 		case I_WAIT_BUTTON:
+			//TODO: IMPLEMENT
+			
 			Serial.println("Wait for button");
 			
-			delay(5000);
+			delay(3000);
 			i_reset();
 		
 			break;
@@ -101,6 +111,53 @@ void i_loop(){
 			Serial.println("Turn right");
 			i_turnLeft();
 			break;
+		case I_LAUNCH:
+			Serial.println("Launch");
+			i_launch();
+			break;
+	}
+}
+
+/*
+i_launch: 	Abfahrt aus dem Startfeld
+			Kalibrieren der Helligkeitssensoren
+			Lesen der Anfangsbitfelder
+*/
+void i_launch(){
+	if(i_state_initialiser){
+		i_state_initialiser = false;
+		mc_move(MC_LEFT_MOTOR, I_LAUNCH_STEPS);
+		mc_setSneak(MC_LEFT_MOTOR, true);
+		mc_move(MC_RIGHT_MOTOR, I_LAUNCH_STEPS);	
+		mc_setSneak(MC_RIGHT_MOTOR, true);
+	}
+	
+	//Kalibrieren
+	
+	//Bifelder lesen
+	if (s_getLightSenor(S_LS_RR) > I_LS_THRESHOLD){
+		digitalWrite(PC13, HIGH);
+		Serial.println("HIGH");
+	}
+	else{
+		digitalWrite(PC13, LOW);
+		Serial.println("LOW");
+	}
+	
+	
+	//Linienfolgen
+	mc_compensate();
+	
+	//Abbruchbedingung
+	if(mc_getMotorState(MC_RIGHT_MOTOR) == MC_SNEAK){
+		if(s_getLightSenor(S_LS_RR) > I_LS_THRESHOLD){
+			//i_setWorkVariable(mc_getSteps(MC_RIGHT_MOTOR));	
+			//i_wait = true;
+			mc_stopSneak(MC_LEFT_MOTOR);
+			mc_stopSneak(MC_RIGHT_MOTOR);
+			mc_resetCompensation();
+			i_nextState();
+		} 			
 	}
 }
 
@@ -130,6 +187,9 @@ void i_turnRight(){
 		mc_move(MC_RIGHT_MOTOR, -I_TURN_STEPS_INNER);	
 		//mc_setSneak(MC_RIGHT_MOTOR, true);
 	}
+	Serial.print(mc_getSteps(MC_LEFT_MOTOR));
+	Serial.print(", ");
+	Serial.println(mc_getSteps(MC_RIGHT_MOTOR));
 	//if(mc_getMotorState(MC_RIGHT_MOTOR) == MC_SNEAK){
 		//if(s_getLightSenor(S_LS_LM) > I_LS_THRESHOLD){
 		if(mc_getMotorState(MC_LEFT_MOTOR) == MC_STOP ){

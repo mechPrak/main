@@ -10,9 +10,9 @@ HardwareTimer motor_timer(2);
 #define PIN_ML_ENABLE PB0
 
 //Geschwindigkeitswerte
-#define MC_MIN_DELAY  20
-#define MC_SNEAK_DELAY  50
-#define MC_INITIAL_DELAY 500
+#define MC_MIN_DELAY  200
+#define MC_SNEAK_DELAY  301
+#define MC_INITIAL_DELAY 1000
 
 
 volatile uint32_t mc_delayCounter[2] = {0,0};
@@ -185,6 +185,7 @@ void mc_ISR(){
 void mc_move(uint8_t motor, int32_t steps){
 	if(steps < 0){
 		Serial.println("Backwards");
+		steps = -steps;
 		switch(motor){
 			case MC_LEFT_MOTOR:
 				digitalWrite(PIN_ML_DIR, HIGH);
@@ -194,7 +195,7 @@ void mc_move(uint8_t motor, int32_t steps){
 				break;
 		}
 	} else {
-		Serial.println("Forwoard");
+		Serial.println("Forward");
 		switch(motor){
 			case MC_LEFT_MOTOR:
 				digitalWrite(PIN_ML_DIR, LOW);
@@ -208,7 +209,7 @@ void mc_move(uint8_t motor, int32_t steps){
 	mc_rampingTablePos[motor] = 0;
 	mc_rampingDelayCounter[motor] = 0;
 	mc_stepsMade[motor] = 0;
-	mc_stepsTotal[motor] = abs(steps);	
+	mc_stepsTotal[motor] = steps;	
 	mc_stepsTotalHalf[motor] = steps / 2;	
 	mc_currentState[motor] = MC_RAMP_UP;
 }

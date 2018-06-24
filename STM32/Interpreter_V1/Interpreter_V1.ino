@@ -17,11 +17,10 @@ enum{
 	S_LS_RR,
 	
 	I_DRIVE_INTERSECTION,
-	I_DRIVE_READ_BIT_FIELD,
+	I_LAUNCH,
 	I_TURN_RIGHT,
 	I_TURN_LEFT,
 	I_READ_OBSTACLE,
-	I_READ_BITFIELD,
 	I_PREPARE_DELIVER,
 	I_DELIVER,
 	I_WAIT_BUTTON
@@ -36,12 +35,20 @@ void setup() {
 	i_init();
 	
 	pinMode(PC13,OUTPUT);
+	
+	pinMode(PB12,OUTPUT);
+	pinMode(PB13,OUTPUT);
+	pinMode(PB14,OUTPUT);
+	
+	digitalWrite(PB12, HIGH);
+	digitalWrite(PB13, HIGH);
+	digitalWrite(PB14, HIGH);
+	
 	delay(3000);	
 }
 
 void loop() {
 	i_loop();
-		
 		
 	/*
 	uint32_t move = true;
