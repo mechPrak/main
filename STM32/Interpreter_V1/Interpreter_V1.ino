@@ -4,7 +4,7 @@ volatile float debugVariable1 = 0;
 volatile float debugVariable2 = 0;
 
 enum{
-    MC_LEFT_MOTOR,				//Linker Motor
+  MC_LEFT_MOTOR,				//Linker Motor
 	MC_RIGHT_MOTOR,				//Rechter Motor
 	
 	MC_RAMP_UP,					//Motor-State: Beschleunigen

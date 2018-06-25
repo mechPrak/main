@@ -12,7 +12,36 @@ TODO:
 #define I_LAUNCH_STEPS 3500								//Steps für die Anfangsphase mit Bitfeldern
 #define I_BIT_READ_STEPDELAY 150						//Steps die nach der steigenden Flanke noch gewartet werden bevor Bit gelesen wird
 
-uint32_t i_stateOrder_l1[50][2];						//Reihenfolge und Argument der States der Level 1 und 2
+
+//Reihenfolge und Argument der States der Level 1 und 2
+uint32_t i_stateOrder_l1[50][2] = {
+      {I_DRIVE_INTERSECTION, 15000},
+      {I_TURN_RIGHT},
+      {I_DRIVE_INTERSECTION, 4000},
+      {I_TURN_RIGHT},
+      {I_DRIVE_INTERSECTION, 750},
+      {I_TURN_LEFT},
+      {I_DRIVE_INTERSECTION, 1500},
+      {I_TURN_RIGHT},
+      {I_DRIVE INTERSECTION, 4000},
+      {I_TURN_RIGHT},
+      {I_DRIVE_INTERSECTION, 1500},
+      {I_TURN_LEFT},
+      {I_DRIVE_INTERSECTION, 750},
+      {I_TURN_LEFT},
+      {I_DRIVE_INTERSECTION, 1500},
+      {I_TURN_RIGHT},
+      {I_DRIVE_INTERSECTION, 4000},
+      {I_TURN_RIGHT},
+      {I_DRIVE_INTERSECTION, 4500},
+      {I_TURN_RIGHT},
+      {I_DRIVE_INTERSECTION, 4000},
+      {I_TURN_LEFT},
+      {I_DRIVE_INTERSECTION,750},
+      {I_TURN_LEFT},
+      {I_DRIVE_INTERSECTION, 4000}
+      {I_WAIT_BUTTON}
+    };
 uint32_t i_stateOrder_l2[50][2];						//Arraybedeutung: 0 -> State, 1 -> Argument für State
 
 uint8_t i_currentLevel = 0;								//Aktuelles Level
@@ -27,66 +56,8 @@ uint8_t i_packetAddress[3] = {0, 0, 0};					//gelesene Adressen: 0 -> grün, 1->
 
 
 void i_init(){
-	/* Testfahrt
-	i_stateOrder_l1[0][0] = I_DRIVE_INTERSECTION;
-	i_stateOrder_l1[0][1] = 15000;	
-	i_stateOrder_l1[1][0] = I_TURN_RIGHT;
-	
-	i_stateOrder_l1[2][0] = I_DRIVE_INTERSECTION;
-	i_stateOrder_l1[2][1] = 4000;	
-	i_stateOrder_l1[3][0] = I_TURN_RIGHT;
-	
-	i_stateOrder_l1[4][0] = I_DRIVE_INTERSECTION;
-	i_stateOrder_l1[4][1] = 750;	
-	i_stateOrder_l1[5][0] = I_TURN_LEFT;
-	
-	i_stateOrder_l1[6][0] = I_DRIVE_INTERSECTION;
-	i_stateOrder_l1[6][1] = 1500;	
-	i_stateOrder_l1[7][0] = I_TURN_RIGHT;
-	
-	i_stateOrder_l1[8][0] = I_DRIVE_INTERSECTION;
-	i_stateOrder_l1[8][1] = 4000;	
-	i_stateOrder_l1[9][0] = I_TURN_RIGHT;
-	
-	i_stateOrder_l1[10][0] = I_DRIVE_INTERSECTION;
-	i_stateOrder_l1[10][1] = 1500;	
-	i_stateOrder_l1[11][0] = I_TURN_LEFT;
-	
-	i_stateOrder_l1[12][0] = I_DRIVE_INTERSECTION;
-	i_stateOrder_l1[12][1] = 750;	
-	i_stateOrder_l1[13][0] = I_TURN_LEFT;
-	
-	i_stateOrder_l1[14][0] = I_DRIVE_INTERSECTION;
-	i_stateOrder_l1[14][1] = 1500;	
-	i_stateOrder_l1[15][0] = I_TURN_RIGHT;
-	
-	i_stateOrder_l1[16][0] = I_DRIVE_INTERSECTION;
-	i_stateOrder_l1[16][1] = 4000;
-	i_stateOrder_l1[17][0] = I_TURN_RIGHT;
-	
-	i_stateOrder_l1[18][0] = I_DRIVE_INTERSECTION;
-	i_stateOrder_l1[18][1] = 4500;
-	i_stateOrder_l1[19][0] = I_TURN_RIGHT;
-	
-	i_stateOrder_l1[20][0] = I_DRIVE_INTERSECTION;
-	i_stateOrder_l1[20][1] = 4000;
-	i_stateOrder_l1[21][0] = I_TURN_LEFT;
-	
-	i_stateOrder_l1[22][0] = I_DRIVE_INTERSECTION;
-	i_stateOrder_l1[22][1] = 750;
-	i_stateOrder_l1[23][0] = I_TURN_LEFT;
-	
-	i_stateOrder_l1[24][0] = I_DRIVE_INTERSECTION;
-	i_stateOrder_l1[24][1] = 4000;	
-	
-	i_stateOrder_l1[25][0] = I_WAIT_BUTTON;	
-	*/
-	
 	i_currentLevel = 1;
-	
-	i_stateOrder_l1[0][0] = I_LAUNCH;
-	i_stateOrder_l1[1][0] = I_WAIT_BUTTON;
-	
+		
 	i_state = i_stateOrder_l1[0][0];
 	
 }
