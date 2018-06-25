@@ -31,6 +31,10 @@ uint16_t sn_getLightSenor(uint8_t sensor){
 	}
 }
 
+uint16_t sn_getDistance(){
+	return analogRead(PIN_DIST);
+}
+
 //Werte zum Debuggen auf Konsole ausgeben
 void sn_debug() {
 	Serial.print("LL: ");

@@ -4,7 +4,7 @@ volatile float debugVariable1 = 0;
 volatile float debugVariable2 = 0;
 
 enum{
-  MC_LEFT_MOTOR,				//Linker Motor
+	MC_LEFT_MOTOR,				//Linker Motor
 	MC_RIGHT_MOTOR,				//Rechter Motor
 	
 	MC_RAMP_UP,					//Motor-State: Beschleunigen
@@ -25,8 +25,20 @@ enum{
 	I_READ_OBSTACLE,			//Interpreter-State: Messen, ob ein Hinderniss im Weg ist
 	I_PREPARE_DELIVER,			//Interpreter-State: Ablage eines Packetes vorbereiten
 	I_DELIVER,					//Interpreter-State: Packet ablegen
-	I_WAIT_BUTTON				//Interpreter-State: Auf Button warten
-
+	I_WAIT_BUTTON,				//Interpreter-State: Auf Button warten
+	
+	I_ROUTE_COMMON,
+	I_ROUTE_A,
+	I_ROUTE_B,
+	
+	SV_SERVO_SELECTOR,
+	SV_SERVO_HATCH,
+	SV_SERVO_ARM,
+	SV_CUBE_GREEN,
+	SV_CUBE_YELLOW,
+	SV_CUBE_RED,
+	SV_DIR_RIGHT,
+	SV_DIR_LEFT
 };
 
 void setup() {
@@ -38,6 +50,7 @@ void setup() {
 	//Untergruppen initialisieren
 	mc_init();
 	sn_init();
+	sv_init();
 	i_init();
 	db_init();
 }
