@@ -10,9 +10,9 @@ HardwareTimer motor_timer(2);
 #define PIN_ML_ENABLE PB0
 
 //Geschwindigkeitswerte
-#define MC_MIN_DELAY  20								//Minimaler Delay, mit dem gefahren werden kann
+#define MC_MIN_DELAY  15								//Minimaler Delay, mit dem gefahren werden kann
 #define MC_SNEAK_DELAY  50								//Delay, auf den beim Schleichen abgebremst wird
-#define MC_INITIAL_DELAY 750							//Anfänglicher Delay in der Ramping-Delay
+#define MC_INITIAL_DELAY 500							//Anfänglicher Delay in der Ramping-Delay
 
 
 volatile uint32_t mc_delayCounter[2] = {0,0};			

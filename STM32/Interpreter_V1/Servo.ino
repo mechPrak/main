@@ -3,6 +3,7 @@
 #define PIN_SV_SELECTOR PB9
 #define PIN_SV_HATCH PB8
 #define PIN_SV_ARM PB7
+#define PIN_SV_UNDEFINED PB6		//Noch ein freier Servo-Platz
 
 Servo sv_servoSelector;				//Servo zur Auswahl des Abzulegenden Würfels
 Servo sv_servoHatch;				//Servo zum Öffnen des Schachts über dem Arm

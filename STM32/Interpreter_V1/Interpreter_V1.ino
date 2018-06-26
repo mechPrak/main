@@ -1,3 +1,12 @@
+/*
+- Code nochmal durchschauen und Version für Level 1 fertig stellen
+- Level 2 einbinden
+- Kurven schneiden
+
+*/
+
+
+
 
 //Mit diesen Variablen können während des Interrupts Werte ausgegeben werden
 volatile float debugVariable1 = 0;
@@ -45,7 +54,7 @@ void setup() {
 	//Serielle Kommunikation starten
 	Serial.begin(115200); 
 	
-	delay(1000);
+	delay(2000);
 	
 	//Untergruppen initialisieren
 	mc_init();
