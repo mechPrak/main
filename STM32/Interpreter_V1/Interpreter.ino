@@ -28,9 +28,9 @@ uint32_t i_deliverInSteps = 0;
 
 
 //Reihenfolge und Argument der States der Level 1 und 2
-//Argument 0:
-//Argument 1:
-//Argument 2:
+//Argument 0: State
+//Argument 1: bei I_DRIVE_INTERSECTION: Anzahl der zu fahrenden Steps. Sonst: undefiniert
+//Argument 2: Routenzuordnung (COMMON gilt für beide Routen, A ist die jeweils äußere, B die innere)
 //Argument 3: Abladefeld und Richtung (Positv heißt rechts ist das Referenzbitfeld)
 int32_t i_stateOrder_l1[][4] = {
 	
@@ -85,14 +85,18 @@ int32_t i_stateOrder_l1[][4] = {
 };
 
 
-void i_init(){
-	i_currentLevel = 1;		
-	i_state = i_stateOrder_l1[0][0];	
+void i_init(){//Initialisierung des Interpreters
+	//TODO: setzen des Aktuellen Levels durch waitButton
+	i_currentLevel = 1;	
+	//aktueller State wird auf den ersten State in der Tabelle gesetzt
+	i_state = i_stateOrder_l1[0][0];
 }
 
 
-void i_loop(){
+void i_loop(){//Hauptloop des interpreters
 	
+	
+	//Impementierung des State-Systems
 	switch(i_state){
 		case I_LAUNCH:
 			i_launch();
@@ -123,129 +127,114 @@ void i_loop(){
 }
 
 
-void i_deliver(uint8_t number){
-	sv_setPos(SV_SERVO_ARM, 100);
-	switch(number){
+void i_deliver(uint8_t number){//Temporäre Ablademethode
+
+	sv_setPos(SV_SERVO_ARM, 100);								//Zu debug-Zwecken den Servo bewegen
+	
+	switch(number){												//Entsprechende Farbe durch RGB-LED leuchten lassen
 		case 1:
 			db_setRgbLed(1,0,0);
-			Serial.println("1");
 			break;
 		case 2:
 			db_setRgbLed(0,1,0);
-			Serial.println("2");
 			break;
 		case 3:
 			db_setRgbLed(0,0,1);
-			Serial.println("3");
 			break;
 		case 4:
 			db_setRgbLed(1,1,0);
-			Serial.println("4");
 			break;
 		case 5:
 			db_setRgbLed(0,1,1);
-			Serial.println("5");
 			break;
 	}
 }
 
 
-void i_launch(){
+void i_launch(){//Erster State um die Bifelder am Anfang auszulesen
+	//Initialiser wird einmal am Anfang des States aufgerufen
 	if(i_initialiser){
-		i_initialiser = false;		
-		mc_move(MC_LEFT_MOTOR, I_LAUNCH_STEPS);
-		mc_setSneak(MC_LEFT_MOTOR, true);		
+		i_initialiser = false;							//Initialiser wird damit das nächste Mal nicht mehr aufgerufen
+		mc_move(MC_LEFT_MOTOR, I_LAUNCH_STEPS);			//Motoren bis zur Kreuzung fahren lassen
+		mc_setSneak(MC_LEFT_MOTOR, true);
 		mc_move(MC_RIGHT_MOTOR, I_LAUNCH_STEPS);	
 		mc_setSneak(MC_RIGHT_MOTOR, true);
 	}
 	
 	//Bifelder lesen
-	static uint8_t lastValue = 0;				//letzter gemessener Wert des rechten Bitfelds
-	static uint32_t maxInBitField = 0;			//maximal gemessener Wert in einem Bit
-	static uint8_t countBitsRead = 100;			//Anzahl der schon gelesenen Bits (auf Hundert um die erste Linie zu ignorieren)
+	static uint8_t lastValue = 0;								//letzter gemessener Wert des rechten Bitfelds
+	static uint32_t maxInBitField = 0;							//maximal gemessener Wert in einem Bit
+	static uint8_t countBitsRead = 100;							//Anzahl der schon gelesenen Bits (auf Hundert um die erste Linie zu ignorieren)
 	
-	//Auslesen des Rechten Sensors zum erkennen der Bitlfelder
-	uint16_t sv_r = sn_getLightSenor(S_LS_RR);
+	uint16_t sv_r = sn_getLightSenor(S_LS_RR);					//Auslesen des rechten Sensors zum erkennen der Referenz-Bitlfelder
+	uint16_t sv_l = sn_getLightSenor(S_LS_LL);					//Auslesen des linken Sensors zum erkennen der Daten-Bitlfelder
 	
-	//Maximalen Wert von LL merken
-	uint16_t sv_l = sn_getLightSenor(S_LS_LL);
-	if(sv_l > maxInBitField){
-		maxInBitField = sv_l;
+	if(sv_l > maxInBitField){									//Maximalen Wert von LL merken
+		maxInBitField = sv_l;									
 	}	
 	
-	//Steigende Flanke an RR
-	if(!lastValue && sv_r > I_LS_THRESHOLD){
+	if(!lastValue && sv_r > I_LS_THRESHOLD){					//Steigende Flanke an RR
 		lastValue = true;
-		maxInBitField = 0;
+		maxInBitField = 0;										//max-Wert zurücksetzen
 	}
 	
-	//Fallende Flanke an RR
-	else if(lastValue && sv_r < I_LS_THRESHOLD){
+	else if(lastValue && sv_r < I_LS_THRESHOLD){				//Fallende Flanke an RR
 		lastValue = false;
 		
-		//Ignorieren der ersten Linie
-		if(countBitsRead == 100){
+		if(countBitsRead == 100){								//Ignorieren der ersten Linie durch Workaround
 			countBitsRead = 0;
 			return;
 		}
 		
-		//Adresse nach Links shiften
-		i_packetAddress[countBitsRead / 3] <<= 1;
-		//Wenn wert schwars war, dann Bit auf 1 setzen
-		if(maxInBitField > I_LS_THRESHOLD){
-			i_packetAddress[countBitsRead / 3] |= 1;
+		i_packetAddress[countBitsRead / 3] <<= 1;				//Adresse nach Links shiften
+		if(maxInBitField > I_LS_THRESHOLD){						//Wenn wert schwarz war, dann Bit auf 1 setzen
+			i_packetAddress[countBitsRead / 3] |= 1;			
 		}
 		countBitsRead++;
 	}
 	
-	//Debug: Led auf Wert des Bitfeldes setzen
-	db_setRgbLed(lastValue, lastValue, lastValue);
+	db_setRgbLed(lastValue, lastValue, lastValue);				//Debug: Led auf Wert des Bitfeldes setzen
 	
+	mc_compensate();											//Linienfolgen
 	
-	//Linienfolgen
-	mc_compensate();
-	
-	//Abbruchbedingung
-	if(mc_getMotorState(MC_RIGHT_MOTOR) == MC_SNEAK){
+	if(mc_getMotorState(MC_RIGHT_MOTOR) == MC_SNEAK){			//Abbruchbedingung
 		if(sn_getLightSenor(S_LS_RR) > I_LS_THRESHOLD){
-			//Motoren anhalten
-			mc_stopSneak(MC_LEFT_MOTOR);
+			mc_stopSneak(MC_LEFT_MOTOR);						//Motoren anhalten
 			mc_stopSneak(MC_RIGHT_MOTOR);
-			//Compensation auf 0 setzen
-			mc_resetCompensation();
-			//In den nächsten State gehen
-			i_nextState();
+			mc_resetCompensation();								//Compensation auf 0 setzen
+			i_nextState();										//In den nächsten State gehen
 		} 			
 	}
 }
 
 
-void i_readObstacle(){
-	if(sn_getDistance() > I_D_THRESHOLD){
-		i_obstaclePositions[i_stateOrder_l1[i_stateOrder_pos][1]] = true;
-		i_currentRoute = I_ROUTE_B;
+void i_readObstacle(){//Erkennen eines Hindernisses und dementsprechend i_currentRoute und i_obstaclePositions setzen
+
+	if(sn_getDistance() > I_D_THRESHOLD){																	//Wenn ein Hinderniss im Weg ist
+		i_obstaclePositions[i_stateOrder_l1[i_stateOrder_pos][1]] = true;									//i_obstaclePositions an dieser Stelle auf false setzen
+																											// -> Die Position im Array wird aus dem State ausgelesen
+		i_currentRoute = I_ROUTE_B;																			//Route auf B setzen
 	}
-	else {
-		i_obstaclePositions[i_stateOrder_l1[i_stateOrder_pos][1]] = false;
-		i_currentRoute = I_ROUTE_A;
+	else {																									//Wenn kein Hinderniss im Weg ist
+		i_obstaclePositions[i_stateOrder_l1[i_stateOrder_pos][1]] = false;									//i_obstaclePositions an dieser Stelle auf false setzen
+		i_currentRoute = I_ROUTE_A;																			//Route auf A setzen
 	}
-	i_nextState();
+	
+	i_nextState();																							//Nächsten State aufrufen
 }
 
 
-void i_driveToIntersection(){
-	if(i_initialiser){
-		i_initialiser = false;
+void i_driveToIntersection(){//Bis zur nächsten Kreuzung fahren
+	if(i_initialiser){																						//Initialiser wird einmal am Anfang aufgerufen
+		i_initialiser = false;																				//Damit wird der Initialiser das nächste mal nicht mehr aufgeführt
 		
-		//Steps des Aktuellen States
-		uint32_t steps = i_stateOrder_l1[i_stateOrder_pos][1];
+		uint32_t steps = i_stateOrder_l1[i_stateOrder_pos][1];												//Steps fürs erste aus der state_order auslesen		
 		
+		//---------------------------------------------------
+		//		ABZIEHEN DER TURNSTEPS (FALLS NOTWENDIG)
+		//---------------------------------------------------
 		
-		
-		//Wenn der vorherige State ein Turn-State war, dann abziehen der Turnsteps
-		
-		//schritte zurück, bis letzter relevanter State kommt (z.B. alle ROUTE_B überspringen)
-		uint8_t statesBack = 1;
+		uint8_t statesBack = 1;																				//Schritte zurück, bis letzter relevanter State kommt (z.B. alle ROUTE_B überspringen)
 		
 		//Wenn im vorherigen State Route A ist und jetzige Route aber B oder
 		//wenn im vorherigen State Route B ist und jetzige Route aber A 
@@ -263,10 +252,11 @@ void i_driveToIntersection(){
 		
 		
 		
-		//Wenn der nächste State ein DriveToIntersect ist, Strecken kombiniere
+		//---------------------------------------------------
+		//		DRIVE_TO_INTERSECT-Zustände kombinieren
+		//---------------------------------------------------
 
-		//schritte vor, bis nächgster relevanter State kommt
-		uint8_t statesForward = 1;
+		uint8_t statesForward = 1;																			
 		bool stopLooking = true;
 		uint8_t numberIntersections = 0;
 		
@@ -279,8 +269,7 @@ void i_driveToIntersection(){
 				  i_stateOrder_l1[i_stateOrder_pos + statesForward][2] == I_ROUTE_B && i_currentRoute == I_ROUTE_A){
 				statesForward++;
 			}
-			//DriveIntersection zusammenzählen
-			if(i_stateOrder_l1[i_stateOrder_pos + statesForward][0] == I_DRIVE_INTERSECTION){
+			if(i_stateOrder_l1[i_stateOrder_pos + statesForward][0] == I_DRIVE_INTERSECTION){							//DriveIntersection zusammenzählen
 				numberIntersections++;
 				Serial.println("combine");
 				if(i_stateOrder_l1[i_stateOrder_pos + statesForward][3] != 0){
@@ -290,21 +279,15 @@ void i_driveToIntersection(){
 					(i_packetAddress[1] == abs(i_stateOrder_l1[i_stateOrder_pos + statesForward][3])) ||
 					(i_packetAddress[2] == abs(i_stateOrder_l1[i_stateOrder_pos + statesForward][3]))){
 						i_deliverEnable = true;
-						
-						//DeliverInSteps setzen
-						i_deliverInSteps = steps + I_STEPS_AFTER_INTERSECTION;
-						Serial.print("i_deliverInSteps gesetzt auf: ");
-						Serial.println(i_deliverInSteps);
-						Serial.print("steps war dabei: ");
-						Serial.println(steps);
+						i_deliverInSteps = steps + I_STEPS_AFTER_INTERSECTION;											//Falls einer der Zustände die Ablieferung eines Würfels beinhaltet, behandeln
 					}
 					
 				}
 				steps += i_stateOrder_l1[i_stateOrder_pos + statesForward][1];
 				statesForward++;
 			}
-			else{
-				//Ansonsten kann die vorrausschauende Suche abgebrochen werden
+			else{																										//Ansonsten kann die vorrausschauende Suche abgebrochen werden
+				
 				stopLooking = false;
 				i_stateOrder_pos += (statesForward - 1);
 			}
@@ -321,25 +304,16 @@ void i_driveToIntersection(){
 					
 					//DeliverInSteps setzen
 					i_deliverInSteps = I_STEPS_AFTER_INTERSECTION;
-					Serial.print("i_deliverInSteps gesetzt auf(2): ");
-					Serial.println(i_deliverInSteps);
-					Serial.print("steps war dabei(2): ");
-					Serial.println(steps);
 				}
 			}
 		}
-		
-		//Sneaksteps abziehen
-		steps -= I_SNEAKSTEPS;
+		steps -= I_SNEAKSTEPS;																							//Sneaksteps abziehen
 		
 		//Fahren
 		mc_move(MC_LEFT_MOTOR, steps);
 		mc_setSneak(MC_LEFT_MOTOR, true);
 		mc_move(MC_RIGHT_MOTOR, steps);
 		mc_setSneak(MC_RIGHT_MOTOR, true);
-		
-		Serial.print("steps, die gefahren werden: ");
-		Serial.println(steps);
 	}
 	
 	
@@ -347,10 +321,17 @@ void i_driveToIntersection(){
 	// TODO : handeln was passiert wenn der RR sensor schwarz hat aber noch gefahren werden muss
 	//			damit kein zucken ins fahren kommt
 	
-	//Linienfolgen
+	
+	//-----------------------------------------------------------------------------
+	//						LINIENFOLGEN
+	//-----------------------------------------------------------------------------
 	mc_compensate();
 	
-	//Pakekauslieferung
+	
+	
+	//-----------------------------------------------------------------------------
+	//						PAKETAUSLIEFERUNG
+	//-----------------------------------------------------------------------------
 	
 	//Steps zählen für Packetauslieferung
 	if(i_deliverEnable){
@@ -377,65 +358,69 @@ void i_driveToIntersection(){
 	}
 	
 	
-	//Abbruchbedingung
-	if(mc_getMotorState(MC_RIGHT_MOTOR) == MC_SNEAK){
-		if(sn_getLightSenor(S_LS_RR) > I_LS_THRESHOLD || sn_getLightSenor(S_LS_LL) > I_LS_THRESHOLD){
-			mc_stopSneak(MC_LEFT_MOTOR);
+	//-----------------------------------------------------------------------------
+	//						ABBRUCHBEDINGUNG
+	//-----------------------------------------------------------------------------
+	if(mc_getMotorState(MC_RIGHT_MOTOR) == MC_SNEAK){														//WEnn der Motor schon am Sneaken ist
+		if(sn_getLightSenor(S_LS_RR) > I_LS_THRESHOLD || sn_getLightSenor(S_LS_LL) > I_LS_THRESHOLD){		//und der Lichtsensor außen die Kreuzung erkennt
+		
+			mc_stopSneak(MC_LEFT_MOTOR);																	//Beide Motoren anhalten
 			mc_stopSneak(MC_RIGHT_MOTOR);
-			mc_resetCompensation();
-			i_nextState();
+			mc_resetCompensation();																			//Kompensation zurücksetzen
+			i_nextState();																					//Nächsten State aufrufen
 		} 			
 	}
 }
 
 
-void i_turnLeft(){
-	if(i_initialiser){
+void i_turnLeft(){//Nach links abbiegen
+	if(i_initialiser){																						//Diesen Teil nur einmal aufrufen
 		i_initialiser = false;
-		mc_move(MC_RIGHT_MOTOR, I_TURN_STEPS_OUTER);
+		mc_move(MC_RIGHT_MOTOR, I_TURN_STEPS_OUTER);														//Motoren bewegen
 		mc_move(MC_LEFT_MOTOR, -I_TURN_STEPS_INNER);	
 	}
-	if(mc_getMotorState(MC_RIGHT_MOTOR) == MC_STOP ){
-		i_nextState();
+	
+	if(mc_getMotorState(MC_RIGHT_MOTOR) == MC_STOP ){														//Abbruchbedingung: Wenn der rechte Motor steht
+		i_nextState();																						//Nächsten State aufrufen
 	}
 }
 
 
 void i_turnRight(){
-	if(i_initialiser){
-		i_initialiser = false;
-		mc_move(MC_LEFT_MOTOR, I_TURN_STEPS_OUTER);
+	if(i_initialiser){																						//Diesen Teil nur einmal aufrufen
+		i_initialiser = false;																				
+		mc_move(MC_LEFT_MOTOR, I_TURN_STEPS_OUTER);															//Motoren bewegen
 		mc_move(MC_RIGHT_MOTOR, -I_TURN_STEPS_INNER);
 	}
-	if(mc_getMotorState(MC_LEFT_MOTOR) == MC_STOP ){
-		i_nextState();
+	if(mc_getMotorState(MC_LEFT_MOTOR) == MC_STOP ){														//Abbruchbedingung: Wenn der linke	Motor steht
+		i_nextState();																						//Nächsten State aufrufen
 	}
 }
 
 
-void i_reset(){
-	i_initialiser = true;
-	i_packetAddress[0] = 0;
+void i_reset(){//Interpreter zurücksetzen
+	i_initialiser = true;																					//Initialiser zurücksetzen
+	i_packetAddress[0] = 0;																					//Paketadressen zurücksetzen
 	i_packetAddress[1] = 0;
 	i_packetAddress[2] = 0;
-	i_stateOrder_pos = 0;
-	i_state = i_stateOrder_l1[i_stateOrder_pos][0];
+	i_stateOrder_pos = 0;																					//Statepos zurücketzen
+	i_state = i_stateOrder_l1[i_stateOrder_pos][0];															//State wieder auf den Anfangsstate setzen
 }
 
 
-void i_nextState(){
-	sv_setPos(SV_SERVO_ARM, 0);
+void i_nextState(){//Nächsten State aufrufen
+	sv_setPos(SV_SERVO_ARM, 0);																				//FÜR DEBUG: Servo zurückbewegen
 	
-	i_initialiser = true;
-	i_stateOrder_pos ++;
+	i_initialiser = true;																					//Initialiser wieder zurücksetzen
+	i_stateOrder_pos ++;																					///State hochzählen
 	
-	while(i_currentRoute == I_ROUTE_A && i_stateOrder_l1[i_stateOrder_pos][2] == I_ROUTE_B){
+	while(i_currentRoute == I_ROUTE_A && i_stateOrder_l1[i_stateOrder_pos][2] == I_ROUTE_B){				//States überspringen, die nicht ausgeführt werden müssen ( B überspringen)
 		i_stateOrder_pos++;
 	}
 	
-	while(i_currentRoute == I_ROUTE_B && i_stateOrder_l1[i_stateOrder_pos][2] == I_ROUTE_A){
+	while(i_currentRoute == I_ROUTE_B && i_stateOrder_l1[i_stateOrder_pos][2] == I_ROUTE_A){				//States überspringen, die nicht ausgeführt werden müssen ( A überspringen)
 		i_stateOrder_pos++;
 	}
 	
-	i_state = i_stateOrder_l1[i_stateOrder_pos][0];
+	i_state = i_stateOrder_l1[i_stateOrder_pos][0];															//neuen State setzen
 }
