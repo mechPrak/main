@@ -1,23 +1,33 @@
 /*
-- Code nochmal durchschauen und Version für Level 1 fertig stellen
-- Level 2 einbinden
-- Kurven schneiden
+Allgemein:
+	- Überlegen: nicht state-system sondern kontinuierlich?
+	- Code nochmal durchschauen und Version für Level 1 fertig stellen
+		- Debugs entfernen
+		- Interpreter mit Methoden übersichtlicher machen
+		- Testen ob auch wirklich alles geht
+	- Buttons um Level 1 oder 2 zu starten
+	- Motortreiber in ander Modus Testen (Stealthchop)
+	- Mit Faktor der Kompensation spielen
+	- Zwischen den zwei Level im Interpreter unterscheiden
+	- Level 2 einbinden und ramping-Table abhängig vom Level machen
 
+Optimierung:
+	- Compensate muss auf Querlininen achten um da nicht in großer Ruckler zu bekommen
+	- Mit Zeitlupe filmen warum bei hohen Geschwindigkeiten Fahrfehler auftreten
+	- Display zum Zeiten messen und Testen
+	- Kurven schneiden und oder bei Kurven die Mittellinie erkennen, geht beim Kurvenschneiden wahrscheinlich nicht
+
+Wenn Mechanik Team soweit ist:
+	- Positionen für Ablademechanismus einfügen
+	- Zeiten des Ablademechanismusses um eventuell warte Punkte einzubauen
 */
-
-
-
-
-//Mit diesen Variablen können während des Interrupts Werte ausgegeben werden
-volatile float debugVariable1 = 0;
-volatile float debugVariable2 = 0;
 
 enum{
 	MC_LEFT_MOTOR,				//Linker Motor
 	MC_RIGHT_MOTOR,				//Rechter Motor
 	
 	MC_RAMP_UP,					//Motor-State: Beschleunigen
-	MC_COAST,					//Motor-State: Geschwindigket halten
+	MC_COAST,					//Motor-State: Geschwindigkeit halten
 	MC_RAMP_DOWN,				//Motor-State: Bremsen
 	MC_SNEAK,					//Motor-State: Schleichen (um auf Intersection zu warten
 	MC_STOP,					//Motor-State: Motor anhalten
@@ -27,27 +37,27 @@ enum{
 	S_LS_RM,					//Lichtsenor: Rechts Mitte
 	S_LS_RR,					//Lichtsenor: Rechts außen
 	
+	I_LAUNCH,					//Interpreter-State: Erster Status, aus Anfangsfeld losfahren und Bitfelder lesen
+	I_WAIT_BUTTON,				//Interpreter-State: Auf Buttoneingabe warten
 	I_DRIVE_INTERSECTION,		//Interpreter-State: Fahre bis zur nächsten Kreuzung
-	I_LAUNCH,					//Interpreter-State: Erster Status, aus Anfangsfeld losfahren, kalibrieren und Bitfelder lesen
 	I_TURN_RIGHT,				//Interpreter-State: Rechts um eine Kurve fahren
 	I_TURN_LEFT,				//Interpreter-State: Links um eine Kurve fahren
 	I_READ_OBSTACLE,			//Interpreter-State: Messen, ob ein Hinderniss im Weg ist
-	I_PREPARE_DELIVER,			//Interpreter-State: Ablage eines Packetes vorbereiten
-	I_DELIVER,					//Interpreter-State: Packet ablegen
-	I_WAIT_BUTTON,				//Interpreter-State: Auf Button warten
+	//I_PREPARE_DELIVER,			//Interpreter-State: Ablage eines Packetes vorbereiten
+	//I_DELIVER,					//Interpreter-State: Packet ablegen
 	
-	I_ROUTE_COMMON,
-	I_ROUTE_A,
-	I_ROUTE_B,
+	I_ROUTE_COMMON,				//Interpreter-Argument: Gemeinsame Route
+	I_ROUTE_A,					//Interpreter-Argument: Alternative Route A
+	I_ROUTE_B,					//Interpreter-Argument: Alternative Route B
 	
-	SV_SERVO_SELECTOR,
-	SV_SERVO_HATCH,
-	SV_SERVO_ARM,
-	SV_CUBE_GREEN,
-	SV_CUBE_YELLOW,
-	SV_CUBE_RED,
-	SV_DIR_RIGHT,
-	SV_DIR_LEFT
+	SV_SERVO_SELECTOR,			//Servo: Auswahl des Würfels
+	SV_SERVO_HATCH,				//Servo: Öffnen der Klappe
+	SV_SERVO_ARM,				//Servo: Bewegen des Auslegerarms
+	SV_CUBE_GREEN,				//Würfel: grün
+	SV_CUBE_YELLOW,				//Würfel: gelb
+	SV_CUBE_RED,				//Würfel: rot
+	SV_DIR_RIGHT,				//Abladerichtung: rechts
+	SV_DIR_LEFT					//Abladerichtung: links
 };
 
 void setup() {
@@ -66,6 +76,4 @@ void setup() {
 
 void loop() {
 	i_loop();
-	
-	//sn_debug();
 }

@@ -1,27 +1,21 @@
-#include <Servo.h>					//Arduino-Standard-Library
+#include <Servo.h>											//Arduino-Standard-Library (wurde für den STM32 geportet)
 
-#define PIN_SV_SELECTOR PB9
-#define PIN_SV_HATCH PB8
-#define PIN_SV_ARM PB7
-#define PIN_SV_UNDEFINED PB6		//Noch ein freier Servo-Platz
+#define PIN_SV_SELECTOR PB9									//Pin für Servo: Auswahl des Servos 
+#define PIN_SV_HATCH PB8									//Pin für Servo: Öffnen der Klappe
+#define PIN_SV_ARM PB7										//Pin für Servo: Bewegen des Auslegerarms
+#define PIN_SV_UNDEFINED PB6								//Pin für noch nicht definierten Servo
 
-Servo sv_servoSelector;				//Servo zur Auswahl des Abzulegenden Würfels
-Servo sv_servoHatch;				//Servo zum Öffnen des Schachts über dem Arm
-Servo sv_servoArm;					//Servo zum Bewegen des Arms
+Servo sv_servoSelector;										//Servo zur Auswahl des Abzulegenden Würfels
+Servo sv_servoHatch;										//Servo zum Öffnen des Schachts über dem Arm
+Servo sv_servoArm;											//Servo zum Bewegen des Arms
 
-// servo init
-void sv_init(){
+void sv_init(){												//Initialisierung der Servos
 	sv_servoSelector.attach(PIN_SV_SELECTOR);
 	sv_servoHatch.attach(PIN_SV_HATCH);
 	sv_servoArm.attach(PIN_SV_ARM);
 }
 
-//servo loop
-void sv_loop(){
-		
-}
-
-void sv_prepare(uint8_t direction, uint8_t color){
+void sv_prepare(uint8_t direction, uint8_t color){			//Bereitet den nächsten Abwurf vor
 	//selector auf farbe setzen
 	//warten bis farbe an richtiger pos
 	//hatch öffnen
@@ -29,12 +23,12 @@ void sv_prepare(uint8_t direction, uint8_t color){
 	//arm absetzten
 }
 
-void sv_drop(){
+void sv_drop(){												//Hebt Auslegerarm hoch um den Würfel abzuliefer
 	//arm hochheben 
 	//prepare next
 }
 
-void sv_setPos(uint8_t servo, uint8_t pos){
+void sv_setPos(uint8_t servo, uint8_t pos){					//Setzt die Zielposition des gewählten Servos
 	switch(servo){
 		case SV_SERVO_SELECTOR:
 			sv_servoSelector.write(pos);

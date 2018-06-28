@@ -1,13 +1,13 @@
-#define PIN_LS_LL PA5			//Pin für Lichtsensor: Links außen
-#define PIN_LS_LM PA4			//Pin für Lichtsensor: Links mitten
-#define PIN_LS_RM PA3			//Pin für Lichtsensor: Rechts mitte
-#define PIN_LS_RR PA2			//Pin für Lichtsensor: Rechts außen
+#define PIN_LS_LL PA5								//Pin für Lichtsensor: Links außen
+#define PIN_LS_LM PA4								//Pin für Lichtsensor: Links mitten
+#define PIN_LS_RM PA3								//Pin für Lichtsensor: Rechts mitte
+#define PIN_LS_RR PA2								//Pin für Lichtsensor: Rechts außen
 
-#define PIN_DIST  PA1			//Pin für Enfernungssensor
-#define PIN_HALL  PA0			//Pin für Hallsense
+#define PIN_DIST  PA1								//Pin für Enfernungssensor
+#define PIN_HALL  PA0								//Pin für Hallsense
 
-void sn_init() {
-	//Pin-Modes setzen
+void sn_init() {									//Initialisiern der Sensoren
+	//Pin-Modes für Sensoren auf Input setzen
 	pinMode(PIN_LS_LL, INPUT);
 	pinMode(PIN_LS_LM, INPUT);
 	pinMode(PIN_LS_RM, INPUT);
@@ -17,8 +17,7 @@ void sn_init() {
 	pinMode(PIN_DIST, INPUT);
 }
 
-//Lichtsensoren ausgeben
-uint16_t sn_getLightSenor(uint8_t sensor){
+uint16_t sn_getLightSenor(uint8_t sensor){			//Gibt den aktuellen Wert des gewählten Helligkeitssensors aus
 	switch(sensor){
 		case S_LS_LL:
 			return analogRead(PIN_LS_LL);
@@ -31,12 +30,11 @@ uint16_t sn_getLightSenor(uint8_t sensor){
 	}
 }
 
-uint16_t sn_getDistance(){
+uint16_t sn_getDistance(){							//Gibt den aktuellen Wert des Entfernungssensors aus
 	return analogRead(PIN_DIST);
 }
 
-//Werte zum Debuggen auf Konsole ausgeben
-void sn_debug() {
+void sn_debug() {									//Gibt alle Sensorwerte per Serial.print zum debuggen aus
 	Serial.print("LL: ");
 	Serial.print(analogRead(PIN_LS_LL));
 	Serial.print("  LM: ");
@@ -50,4 +48,3 @@ void sn_debug() {
 	Serial.print("  Hall: ");
 	Serial.println(analogRead(PIN_HALL));
 }
-

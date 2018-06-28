@@ -1,11 +1,3 @@
-/*
-TODO:
-	- compensate an querlinien beachten
-	- differenzieren zwischen Level 1 und 2 (mit i_currentLevel) -> variable ob lvl 1 schon gefahren wurde (oder beide in eine großes mehrdimensionales array)
-	- led nach hochheben des arms anschalten und dann abbremsen
-	- zeit auf display anzeigen
-*/
-
 #define I_MM_TO_STEPS_FAKTOR (50/3)						//mm in steps -> mm * 50/3
 
 #define I_LS_THRESHOLD 2000								//Wert des Helligkeitsensors ab dem Schwarz erkannt werden soll
@@ -21,17 +13,14 @@ TODO:
 
 #define I_STEPS_AFTER_INTERSECTION 150					//Steps, die nach einer Intersection gewartet werden, bevor bei der Paketausgabe auf den Lichtsensor getriggert wird
 
-uint8_t i_obstaclePositions[3] = {false, false, false};
-uint8_t i_currentRoute = I_ROUTE_A;
-
-//uint32_t i_stateOrder_l2[50][2];						//Arraybedeutung: 0 -> State, 1 -> Argument für State
+uint8_t i_obstaclePositions[3] = {false, false, false};	//Positionen der Hindernisse für Level 2
+uint8_t i_currentRoute = I_ROUTE_A;						//Route die gefahren werden muss um dem nächsten Hinderniss auszuweichen
+uint8_t i_packetAddress[3] = {0, 0, 0};					//gelesene Adressen: 0 -> grün, 1-> gelb, 2 -> rot
 
 uint8_t i_currentLevel = 0;								//Aktuelles Level
 uint8_t i_stateOrder_pos = 0;							//Position im Statearray des Aktuellen Levels
 uint8_t i_state = I_WAIT_BUTTON;						//Aktueller state (initial: auf Knopfdruck warten)
 uint8_t i_initialiser = true;							//Boolean um States zu initialisieren
-
-uint8_t i_packetAddress[3] = {0, 0, 0};					//gelesene Adressen: 0 -> grün, 1-> gelb, 2 -> rot
 
 uint8_t i_deliverEnable = false;
 uint32_t i_deliverInSteps = 0;
