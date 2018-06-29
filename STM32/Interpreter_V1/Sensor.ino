@@ -6,6 +6,9 @@
 #define PIN_DIST  PA1								//Pin für Enfernungssensor
 #define PIN_HALL  PA0								//Pin für Hallsense
 
+#define PIN_BUTTON_1	PB4							//Button für Lvl 1
+#define PIN_BUTTON_2	PB5							//Button für Lvl 2
+
 void sn_init() {									//Initialisiern der Sensoren
 	//Pin-Modes für Sensoren auf Input setzen
 	pinMode(PIN_LS_LL, INPUT);
@@ -15,6 +18,9 @@ void sn_init() {									//Initialisiern der Sensoren
   
 	pinMode(PIN_HALL, INPUT);
 	pinMode(PIN_DIST, INPUT);
+	
+	pinMode(PIN_BUTTON_1, INPUT_PULLUP);
+	pinMode(PIN_BUTTON_2, INPUT_PULLUP);
 }
 
 uint16_t sn_getLightSenor(uint8_t sensor){			//Gibt den aktuellen Wert des gewählten Helligkeitssensors aus
@@ -47,4 +53,14 @@ void sn_debug() {									//Gibt alle Sensorwerte per Serial.print zum debuggen 
 	Serial.print(analogRead(PIN_DIST));
 	Serial.print("  Hall: ");
 	Serial.println(analogRead(PIN_HALL));
+}
+
+
+uint8_t sn_getButton(uint32_t button){
+	if(button == S_BUTTON_1){
+		return digitalRead(PIN_BUTTON_1);
+	}
+	else if (button == S_BUTTON_2){
+		return digitalRead(PIN_BUTTON_2);
+	}
 }

@@ -6,9 +6,9 @@
 #define PIN_ML_DIR PA6											//Direction Pin des linken Motors
 #define PIN_ML_ENABLE PB0										//Enable Pin des linken Motors
 
-#define MC_MIN_DELAY  20										//Minimaler Delay, mit dem gefahren werden kann
+#define MC_MIN_DELAY  30										//Minimaler Delay, mit dem gefahren werden kann
 #define MC_SNEAK_DELAY  100										//Delay, auf den beim Schleichen abgebremst wird
-#define MC_INITIAL_DELAY 500									//Anfänglicher Delay in der Ramping-Delay
+#define MC_INITIAL_DELAY 1500									//Anfänglicher Delay in der Ramping-Delay
 
 HardwareTimer motor_timer(2);									//Erstellen des Timers für den Motorcontroller
 
@@ -267,4 +267,9 @@ uint32_t mc_getMotorState(uint32_t motor){ 						//Gibt den aktuellen State des 
 
 uint32_t mc_getSteps(uint32_t motor){							//Gibt die bereits gefahrenen Steps des Motors
 	return mc_stepsMade[motor];
+}
+
+void mc_stopMotors(){
+	mc_currentState[0] = MC_STOP;
+	mc_currentState[1] = MC_STOP;
 }

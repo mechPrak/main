@@ -36,6 +36,8 @@ enum{
 	S_LS_LM,					//Lichtsenor: Links Mitte
 	S_LS_RM,					//Lichtsenor: Rechts Mitte
 	S_LS_RR,					//Lichtsenor: Rechts außen
+	S_BUTTON_1,					//Button 1
+	S_BUTTON_2,					//Button 2
 	
 	I_LAUNCH,					//Interpreter-State: Erster Status, aus Anfangsfeld losfahren und Bitfelder lesen
 	I_WAIT_BUTTON,				//Interpreter-State: Auf Buttoneingabe warten
@@ -64,16 +66,44 @@ void setup() {
 	//Serielle Kommunikation starten
 	Serial.begin(115200); 
 	
-	delay(2000);
-	
 	//Untergruppen initialisieren
 	mc_init();
 	sn_init();
 	sv_init();
 	i_init();
 	db_init();
+	
+	/*
+	sv_setPos(SV_SERVO_ARM, 105);
+	sv_setPos(SV_SERVO_HATCH, 120);
+	sv_setPos(SV_SERVO_SELECTOR, 150);
+	delay(1000);
+	*/
 }
 
 void loop() {
 	i_loop();
+	
+	/*
+	mc_move(MC_LEFT_MOTOR, 5000);
+	mc_move(MC_RIGHT_MOTOR, 5000);
+	delay(1000);
+	i_turnRight();
+	delay(1000);
+	*/
+	
+	/*
+	sv_setPos(SV_SERVO_SELECTOR, 81);
+	delay(1000);
+	sv_setPos(SV_SERVO_HATCH, 87);
+	delay(1000);
+	sv_setPos(SV_SERVO_HATCH, 120);
+	delay(1000);	
+	sv_setPos(SV_SERVO_SELECTOR, 150);
+	delay(1000);
+	sv_setPos(SV_SERVO_ARM, 30);
+	delay(1000);
+	sv_setPos(SV_SERVO_ARM, 105);
+	delay(1000);
+	*/
 }
