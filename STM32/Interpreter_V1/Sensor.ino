@@ -40,8 +40,12 @@ uint16_t sn_getDistance(){							//Gibt den aktuellen Wert des Entfernungssensor
 	return analogRead(PIN_DIST);
 }
 
+uint16_t sn_getHallSensor(){
+	return analogRead(PIN_HALL);
+}
+
 void sn_debug() {									//Gibt alle Sensorwerte per Serial.print zum debuggen aus
-	Serial.print("LL: ");
+	/*Serial.print("LL: ");
 	Serial.print(analogRead(PIN_LS_LL));
 	Serial.print("  LM: ");
 	Serial.print(analogRead(PIN_LS_LM));
@@ -51,8 +55,9 @@ void sn_debug() {									//Gibt alle Sensorwerte per Serial.print zum debuggen 
 	Serial.print(analogRead(PIN_LS_RR));
 	Serial.print("  Dist: ");
 	Serial.print(analogRead(PIN_DIST));
-	Serial.print("  Hall: ");
+	Serial.print("  Hall: ");*/
 	Serial.println(analogRead(PIN_HALL));
+	delay(10);
 }
 
 

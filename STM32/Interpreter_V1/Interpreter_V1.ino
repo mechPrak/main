@@ -45,8 +45,9 @@ enum{
 	I_TURN_RIGHT,				//Interpreter-State: Rechts um eine Kurve fahren
 	I_TURN_LEFT,				//Interpreter-State: Links um eine Kurve fahren
 	I_READ_OBSTACLE,			//Interpreter-State: Messen, ob ein Hinderniss im Weg ist
-	//I_PREPARE_DELIVER,			//Interpreter-State: Ablage eines Packetes vorbereiten
-	//I_DELIVER,					//Interpreter-State: Packet ablegen
+	I_VOID,						//In diesem Zustand passiert nichts
+	I_SET_FIRST_ROUTE,			//Setzt das Array für die erste Route
+	I_SET_SECOND_ROUTE,			//Setzt das Array für die zweite Route
 	
 	I_ROUTE_COMMON,				//Interpreter-Argument: Gemeinsame Route
 	I_ROUTE_A,					//Interpreter-Argument: Alternative Route A
@@ -70,7 +71,7 @@ void setup() {
 	mc_init();
 	sn_init();
 	sv_init();
-	i_init();
+	//i_init();
 	db_init();
 	
 	/*
@@ -83,6 +84,8 @@ void setup() {
 
 void loop() {
 	i_loop();
+	
+	//sn_debug();
 	
 	/*
 	mc_move(MC_LEFT_MOTOR, 5000);

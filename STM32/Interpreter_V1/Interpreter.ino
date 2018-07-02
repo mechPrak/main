@@ -2,6 +2,9 @@
 
 #define I_LS_THRESHOLD 2000								//Wert des Helligkeitsensors ab dem Schwarz erkannt werden soll
 #define I_D_THRESHOLD 700								//Wert des Entfernungssensors ab dem ein Obstacle erkannt wird
+#define I_HL_THRESHOLD_MIN 1500							//Wert des Hallsensors, ab dem der Min-Wert erkannt wird
+#define I_HL_THRESHOLD_MAX 2500							//Wert des Hallsensors, ab dem der Max-Wert erkannt wird
+#define I_HL_MIDVALUE 2100
 
 #define I_TURN_STEPS_OUTER 2550							//Steps die der äußere Motor fährt
 #define I_TURN_STEPS_INNER 700							//Steps die der innere Motor fährt
@@ -17,11 +20,14 @@
 uint8_t i_obstaclePositions[3] = {false, false, false};	//Positionen der Hindernisse für Level 2
 uint8_t i_currentRoute = I_ROUTE_A;						//Route die gefahren werden muss um dem nächsten Hinderniss auszuweichen
 uint8_t i_packetAddress[3] = {0, 0, 0};					//gelesene Adressen: 0 -> grün, 1-> gelb, 2 -> rot
-
-uint8_t i_currentLevel = 0;								//Aktuelles Level
+int8_t i_packetPriority[3] = {0, 0, 0};
+uint8_t i_countBitsRead = 100;							//Anzahl der schon gelesenen Bits (auf Hundert um die erste Linie zu ignorieren)
 uint8_t i_stateOrder_pos = 0;							//Position im Statearray des Aktuellen Levels
 uint8_t i_state = I_WAIT_BUTTON;						//Aktueller state (initial: auf Knopfdruck warten)
 uint8_t i_initialiser = true;							//Boolean um States zu initialisieren
+
+uint8_t i_preparedLvl1 = false;
+uint8_t i_preparedLvl2 = false;
 
 uint8_t i_deliverEnable = false;
 uint32_t i_deliverInSteps = 0;
@@ -36,6 +42,7 @@ int i_stateOrder[I_MAX_VALUE_ARRAY_LENGTH][5];
 //Argument 3: Abladefeld und Richtung (Positv heißt rechts ist das Referenzbitfeld)
 
 int i_stateOrder_lvl_1[50][5] = {
+	{I_WAIT_BUTTON,			0,							I_ROUTE_COMMON,     0},
 	{I_LAUNCH,				0,							I_ROUTE_COMMON,		0},	
 	//Hinderniss 0
 	{I_READ_OBSTACLE, 		0,							I_ROUTE_COMMON,		0},	
@@ -83,41 +90,55 @@ int i_stateOrder_lvl_1[50][5] = {
 	{I_TURN_RIGHT,			0,							I_ROUTE_B,			0},	
 		
 	{I_DRIVE_INTERSECTION, 	245 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,		-4,		150},
-	{I_WAIT_BUTTON,			0,							I_ROUTE_COMMON,		0}
+	{I_VOID,				0,							I_ROUTE_COMMON,		0}
 };
 
-void i_init(){											//Initialisierung des Interpreters
-	
+int i_stateOrder_lvl_2_begin[50][5] = {
+	{I_WAIT_BUTTON,			0,							I_ROUTE_COMMON,     0},
+	{I_LAUNCH,				0,							I_ROUTE_COMMON,		0},
+	{I_SET_FIRST_ROUTE,		0,							I_ROUTE_COMMON,		0}
+};
+
+
+
+
+
+void i_init(uint8_t level){											//Initialisierung des Interpreters
 	mc_stopMotors();
 	
+	i_packetAddress[0] = 0;
+	i_packetAddress[1] = 0;
+	i_packetAddress[2] = 0;
 	
-	for(int y = 0; y < I_MAX_VALUE_ARRAY_LENGTH; y++){
+	i_packetPriority[0] = 0;
+	i_packetPriority[1] = 0;
+	i_packetPriority[2] = 0;
+	i_countBitsRead = 100;
+	
+	if(level == 1){
+		for(int y = 0; y < I_MAX_VALUE_ARRAY_LENGTH; y++){
 			for(int x = 0; x < 5; x++){
-				i_stateOrder[y][x] = 0;
+				i_stateOrder[y][x] = i_stateOrder_lvl_1[y][x];
 			}
+		}		
 	}
 	
+	if(level == 2){
+		for(int y = 0; y < I_MAX_VALUE_ARRAY_LENGTH; y++){
+			for(int x = 0; x < 5; x++){
+				i_stateOrder[y][x] = i_stateOrder_lvl_2_begin[y][x];
+			}
+		}
+	}
+	
+	
 	i_stateOrder_pos = 0;
-	i_state = i_stateOrder[i_stateOrder_pos][0];
-	
-	//am Anfang wait button einstellen
-	i_stateOrder[0][0] = I_WAIT_BUTTON;
-	i_stateOrder[0][1] = 0;
-	i_stateOrder[0][2] = I_ROUTE_COMMON;
-	i_stateOrder[0][3] = 0;
-	i_stateOrder[0][4] = 0;
-	
-	delay(1000);
-	Serial.println("init aufgerufen");
-	
+	i_state = i_stateOrder[0][0];
 }
 
 void i_loop(){											//Hauptloop des interpreters
 
-	//Schauen, ob ein Knopf zum zurücksetzen gedrückt wurde
-	if(checkButtons()){
-		i_init();
-	}
+	prepareLevel();
 
 	switch(i_state){									//Impementierung des State-Systems
 		case I_LAUNCH:
@@ -125,7 +146,6 @@ void i_loop(){											//Hauptloop des interpreters
 			break;
 			
 		case I_WAIT_BUTTON:
-			Serial.println("STATE = WAIT BUTTON");
 			i_waitButton();
 			break;
 			
@@ -144,43 +164,58 @@ void i_loop(){											//Hauptloop des interpreters
 		case I_TURN_LEFT:
 			i_turnLeft();
 			break;
+		
+		case I_VOID:
+			break;
+			
+		case I_SET_FIRST_ROUTE:
+			i_setFirstRoute();
+			break;
+			
+		case I_SET_SECOND_ROUTE:
+			i_setSecondRoute();			
+			break;
 	}
 	
 }
 
-uint8_t checkButtons(){
-	if((!sn_getButton(S_BUTTON_1))){
-		Serial.println("check buttons ist true");
-		return true;
+void prepareLevel(){
+	if(!sn_getButton(S_BUTTON_1) && !i_preparedLvl1){
+		i_preparedLvl2 = false;
+		i_preparedLvl1 = true;
+		i_init(1);
+		delay(500);
 	}
-	return false;
+	if(!sn_getButton(S_BUTTON_2) && !i_preparedLvl2){
+		i_preparedLvl1 = false;
+		i_preparedLvl2 = true;
+		i_init(2);
+		delay(500);
+	}
 }
 
 void i_waitButton(){
-	if(sn_getButton(S_BUTTON_1) == LOW){
-		i_resetLvl_1();
-		delay(50);
-		Serial.println("Button1 LOW");
-		while(sn_getButton(S_BUTTON_1) == LOW){
-			
-		};
-		
-		
-		for(int y = 0; y < I_MAX_VALUE_ARRAY_LENGTH; y++){
-			for(int x = 0; x < 5; x++){
-				i_stateOrder[y][x] = i_stateOrder_lvl_1[y][x];
-			}
-		}
-		Serial.println("StateOrder überschrieben");
-		i_state = i_stateOrder[0][0];
-		
+	static uint8_t buttonPressed1 = false;
+	if(!sn_getButton(S_BUTTON_1) && i_preparedLvl1){
+		buttonPressed1 = true;
+		delay(15);
 	}
-	if(sn_getButton(S_BUTTON_2) == LOW){
-		Serial.println("Button2 LOW");
+	if(sn_getButton(S_BUTTON_1) && buttonPressed1){
+		buttonPressed1 = false;
+		i_preparedLvl1 = false;
+		i_nextState();
 	}
 }
 
-void i_deliver(uint8_t number){							//Temporäre Ablademethode	
+void i_setFirstRoute(){
+	
+}
+
+void i_setSecondRoute(){
+	
+}
+
+void i_deliver(uint8_t number){																				//Temporäre Ablademethode	
 
 	switch(number){												//Entsprechende Farbe durch RGB-LED leuchten lassen
 		case 1:
@@ -202,8 +237,7 @@ void i_deliver(uint8_t number){							//Temporäre Ablademethode
 }
 
 
-void i_launch(){										//Erster State um die Bifelder am Anfang auszulesen                                                
-
+void i_launch(){																							//Erster State um die Bifelder am Anfang auszulesen                                                
 
 	if(i_initialiser){									//Initialiser wird einmal am Anfang des States aufgerufen
 		i_initialiser = false;							//Initialiser wird damit das nächste Mal nicht mehr aufgerufen
@@ -213,39 +247,90 @@ void i_launch(){										//Erster State um die Bifelder am Anfang auszulesen
 		mc_setSneak(MC_RIGHT_MOTOR, true);
 	}
 	
-	//Bifelder lesen
-	static uint8_t lastValue = 0;								//letzter gemessener Wert des rechten Bitfelds
-	static uint32_t maxInBitField = 0;							//maximal gemessener Wert in einem Bit
-	static uint8_t countBitsRead = 100;							//Anzahl der schon gelesenen Bits (auf Hundert um die erste Linie zu ignorieren)
+	//Bifelder (Schwarz/Weiß-Felder und Magnetfelder) lesen
+	static uint8_t light_lastValue = 0;								//letzter gemessener Wert des rechten Bitfelds
+	static uint32_t light_maxInBitField = 0;						//maximal gemessener Wert in einem Bit
 	
-	uint16_t sv_r = sn_getLightSenor(S_LS_RR);					//Auslesen des rechten Sensors zum erkennen der Referenz-Bitlfelder
-	uint16_t sv_l = sn_getLightSenor(S_LS_LL);					//Auslesen des linken Sensors zum erkennen der Daten-Bitlfelder
+	static uint32_t hall_maxInBitField = I_HL_MIDVALUE;
+	static uint32_t hall_minInBitField = I_HL_MIDVALUE;
 	
-	if(sv_l > maxInBitField){									//Maximalen Wert von LL merken
-		maxInBitField = sv_l;									
+	uint16_t light_right = sn_getLightSenor(S_LS_RR);					//Auslesen des rechten Sensors zum erkennen der Referenz-Bitlfelder
+	uint16_t light_left = sn_getLightSenor(S_LS_LL);					//Auslesen des linken Sensors zum erkennen der Daten-Bitlfelder
+	
+	
+	//Hallsensor auslesen
+		//Positionen für Magnete: 2,5,8
+	uint16_t hall = sn_getHallSensor();
+	if(hall > hall_maxInBitField){
+		hall_maxInBitField = hall;
+	}
+	if(hall < hall_minInBitField){
+		hall_minInBitField = hall;
+	}
+		
+	//Lichtsensor auslesen
+	if(light_left > light_maxInBitField){									//Maximalen Wert von LL merken
+		light_maxInBitField = light_left;									
 	}	
 	
-	if(!lastValue && sv_r > I_LS_THRESHOLD){					//Steigende Flanke an RR
-		lastValue = true;
-		maxInBitField = 0;										//max-Wert zurücksetzen
+	if(!light_lastValue && light_right > I_LS_THRESHOLD){					//Steigende Flanke an RR
+		light_lastValue = true;
+		light_maxInBitField = 0;										//max-Wert zurücksetzen
 	}
 	
-	else if(lastValue && sv_r < I_LS_THRESHOLD){				//Fallende Flanke an RR
-		lastValue = false;
+	else if(light_lastValue && light_right < I_LS_THRESHOLD){				//Fallende Flanke an RR
+		light_lastValue = false;
 		
-		if(countBitsRead == 100){								//Ignorieren der ersten Linie durch Workaround
-			countBitsRead = 0;
+		if(i_countBitsRead == 100){								//Ignorieren der ersten Linie durch Workaround
+			i_countBitsRead = 0;
 			return;
 		}
 		
-		i_packetAddress[countBitsRead / 3] <<= 1;				//Adresse nach Links shiften
-		if(maxInBitField > I_LS_THRESHOLD){						//Wenn wert schwarz war, dann Bit auf 1 setzen
-			i_packetAddress[countBitsRead / 3] |= 1;			
+		i_packetAddress[i_countBitsRead / 3] <<= 1;				//Adresse nach Links shiften
+		if(light_maxInBitField > I_LS_THRESHOLD){						//Wenn wert schwarz war, dann Bit auf 1 setzen
+			i_packetAddress[i_countBitsRead / 3] |= 1;			
 		}
-		countBitsRead++;
+		
+		
+		//Hallsensorwerte in diskrete Werte umwandeln
+		int8_t hl_curr_value = 0;
+		if(hall_maxInBitField > I_HL_THRESHOLD_MAX){
+				hl_curr_value = 1;
+		}
+		else if (hall_minInBitField < I_HL_THRESHOLD_MIN){
+				hl_curr_value = -1;
+		}
+			
+		//Diskrete Werte speichern
+		if(i_countBitsRead == 2){
+			i_packetPriority[0] = hl_curr_value;
+		}
+		else if(i_countBitsRead == 5){
+			i_packetPriority[1] = hl_curr_value;
+		}
+		else if(i_countBitsRead == 8){
+			i_packetPriority[2] = hl_curr_value;
+		}
+		Serial.println(i_countBitsRead);
+		Serial.print(i_packetPriority[0]);
+		Serial.print(", ");
+		Serial.print(i_packetPriority[1]);
+		Serial.print(", ");
+		Serial.println(i_packetPriority[2]);
+		
+		
+		Serial.print(hall_maxInBitField);
+		Serial.print(" ,");
+		Serial.println(hall_minInBitField);
+		
+		i_countBitsRead++;
+		
+		//Hallsensor zurücksetzen
+		hall_maxInBitField = I_HL_MIDVALUE;
+		hall_minInBitField = I_HL_MIDVALUE;
 	}
 	
-	db_setRgbLed(lastValue, lastValue, lastValue);				//Debug: Led auf Wert des Bitfeldes setzen
+	db_setRgbLed(light_lastValue, light_lastValue, light_lastValue);
 	
 	mc_compensate();											//Linienfolgen
 	
@@ -255,7 +340,7 @@ void i_launch(){										//Erster State um die Bifelder am Anfang auszulesen
 			mc_stopSneak(MC_RIGHT_MOTOR);
 			mc_resetCompensation();								//Compensation auf 0 setzen
 			i_nextState();										//In den nächsten State gehen
-		} 			
+		}
 	}
 	
 }
@@ -335,7 +420,6 @@ void i_driveToIntersection(){																				//Bis zur nächsten Kreuzung fa
 			if((sn_getLightSenor(S_LS_LL) > I_LS_THRESHOLD) || (sn_getLightSenor(S_LS_RR) > I_LS_THRESHOLD)){
 				//Jetzt ablegen
 				i_deliver(abs(i_stateOrder[i_stateOrder_pos][3]));
-				Serial.println("Paket wurde abgelegt");
 				//Zurücksetzen
 				i_deliverEnable = false;
 			}
@@ -358,7 +442,7 @@ void i_driveToIntersection(){																				//Bis zur nächsten Kreuzung fa
 }
 
 
-void i_turnLeft(){//Nach links abbiegen
+void i_turnLeft(){																							//Nach links abbiegen
 	if(i_initialiser){																						//Diesen Teil nur einmal aufrufen
 		i_initialiser = false;
 		mc_move(MC_RIGHT_MOTOR, I_TURN_STEPS_OUTER);														//Motoren bewegen
@@ -383,17 +467,7 @@ void i_turnRight(){
 }
 
 
-void i_resetLvl_1(){//Interpreter zurücksetzen
-	i_initialiser = true;																					//Initialiser zurücksetzen
-	i_packetAddress[0] = 0;																					//Paketadressen zurücksetzen
-	i_packetAddress[1] = 0;
-	i_packetAddress[2] = 0;
-	i_stateOrder_pos = 0;																					//Statepos zurücketzen
-	i_state = i_stateOrder[i_stateOrder_pos][0];															//State wieder auf den Anfangsstate setzen
-}
-
-
-void i_nextState(){//Nächsten State aufrufen
+void i_nextState(){																							//Nächsten State aufrufen
 	sv_setPos(SV_SERVO_ARM, 0);																				//FÜR DEBUG: Servo zurückbewegen
 	
 	i_initialiser = true;																					//Initialiser wieder zurücksetzen
