@@ -44,6 +44,7 @@ enum{
 	I_DRIVE_INTERSECTION,		//Interpreter-State: Fahre bis zur nächsten Kreuzung
 	I_TURN_RIGHT,				//Interpreter-State: Rechts um eine Kurve fahren
 	I_TURN_LEFT,				//Interpreter-State: Links um eine Kurve fahren
+	I_TURN_180,					//Interpreter-State: Um 180 Grad drehen
 	I_READ_OBSTACLE,			//Interpreter-State: Messen, ob ein Hinderniss im Weg ist
 	I_VOID,						//In diesem Zustand passiert nichts
 	I_SET_FIRST_ROUTE,			//Setzt das Array für die erste Route

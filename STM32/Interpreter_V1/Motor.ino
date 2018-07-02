@@ -7,8 +7,8 @@
 #define PIN_ML_ENABLE PB0										//Enable Pin des linken Motors
 
 #define MC_MIN_DELAY  30										//Minimaler Delay, mit dem gefahren werden kann
-#define MC_SNEAK_DELAY  100										//Delay, auf den beim Schleichen abgebremst wird
-#define MC_INITIAL_DELAY 1500									//Anfänglicher Delay in der Ramping-Delay
+#define MC_SNEAK_DELAY  300										//Delay, auf den beim Schleichen abgebremst wird
+#define MC_INITIAL_DELAY 2000									//Anfänglicher Delay in der Ramping-Delay
 
 HardwareTimer motor_timer(2);									//Erstellen des Timers für den Motorcontroller
 

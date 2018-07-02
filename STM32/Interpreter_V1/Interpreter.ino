@@ -8,8 +8,10 @@
 
 #define I_TURN_STEPS_OUTER 2550							//Steps die der äußere Motor fährt
 #define I_TURN_STEPS_INNER 700							//Steps die der innere Motor fährt
+#define I_TURNSTEPS_180 2000
 #define I_TURNSTEPS 1300								//Steps die nach einer Kurve abgezogen werden
 #define I_SNEAKSTEPS 100
+
 
 #define I_LAUNCH_STEPS 4500								//Steps für die Anfangsphase mit Bitfeldern
 
@@ -41,7 +43,7 @@ int i_stateOrder[I_MAX_VALUE_ARRAY_LENGTH][5];
 //Argument 2: Routenzuordnung (COMMON gilt für beide Routen, A ist die jeweils äußere, B die innere)
 //Argument 3: Abladefeld und Richtung (Positv heißt rechts ist das Referenzbitfeld)
 
-int i_stateOrder_lvl_1[50][5] = {
+int32_t i_stateOrder_lvl_1[50][5] = {
 	{I_WAIT_BUTTON,			0,							I_ROUTE_COMMON,     0},
 	{I_LAUNCH,				0,							I_ROUTE_COMMON,		0},	
 	//Hinderniss 0
@@ -93,14 +95,240 @@ int i_stateOrder_lvl_1[50][5] = {
 	{I_VOID,				0,							I_ROUTE_COMMON,		0}
 };
 
-int i_stateOrder_lvl_2_begin[50][5] = {
+int32_t i_stateOrder_lvl_2_begin[50][5] = {
 	{I_WAIT_BUTTON,			0,							I_ROUTE_COMMON,     0},
 	{I_LAUNCH,				0,							I_ROUTE_COMMON,		0},
 	{I_SET_FIRST_ROUTE,		0,							I_ROUTE_COMMON,		0}
 };
 
+int32_t i_stateOrder_11[50][5] = {
+	{I_READ_OBSTACLE, 		0,							I_ROUTE_COMMON,		0},	
+	{I_DRIVE_INTERSECTION, 	330 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_A,			0},	
+	{I_TURN_RIGHT, 			0,		 					I_ROUTE_B,			0},
+	{I_DRIVE_INTERSECTION, 	155 * I_MM_TO_STEPS_FAKTOR, I_ROUTE_B,			0},
+	{I_TURN_LEFT, 			0,							I_ROUTE_B,			0},	
+	{I_DRIVE_INTERSECTION, 	330 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,			0},
+	{I_TURN_LEFT, 			0,							I_ROUTE_B,			0},	
+	{I_DRIVE_INTERSECTION, 	155 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,			0},
+	{I_TURN_RIGHT, 			0, 							I_ROUTE_B,			0},	
+	
+	{I_DRIVE_INTERSECTION, 	315 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,		0},
+	{I_TURN_RIGHT, 			0,							I_ROUTE_COMMON,		0},
+	{I_DRIVE_INTERSECTION, 	350 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,		1,		150},
+	{I_SET_SECOND_ROUTE,	0,							I_ROUTE_COMMON,		0}
+};
 
+int32_t i_stateOrder_12[50][5] = {
+	{I_TURN_RIGHT, 			0,		 					I_ROUTE_COMMON,		0},
+	{I_DRIVE_INTERSECTION, 	555 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,		0},
+	{I_TURN_LEFT, 			0,		 					I_ROUTE_COMMON,		0},
+	{I_DRIVE_INTERSECTION, 	490 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,		-2,		180},
+	{I_SET_SECOND_ROUTE,	0,							I_ROUTE_COMMON,		0}
+};
 
+int32_t i_stateOrder_13[50][5] = {
+	{I_TURN_RIGHT, 			0,		 					I_ROUTE_COMMON,		0},
+	{I_DRIVE_INTERSECTION, 	350 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,		0},
+	{I_TURN_LEFT, 			0,		 					I_ROUTE_COMMON,		0},
+	{I_DRIVE_INTERSECTION, 	155 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,		0},
+	{I_TURN_RIGHT, 			0,		 					I_ROUTE_COMMON,		0},
+	{I_DRIVE_INTERSECTION, 	205 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,		-3,		180},
+	{I_SET_SECOND_ROUTE,	0,							I_ROUTE_COMMON,		0}
+};
+
+int32_t i_stateOrder_14[50][5] = {
+	{I_TURN_RIGHT, 			0,		 					I_ROUTE_COMMON,		0},
+	{I_DRIVE_INTERSECTION, 	155 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,		0},
+	{I_TURN_RIGHT, 			0,		 					I_ROUTE_COMMON,		0},
+	{I_DRIVE_INTERSECTION, 	310 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,		0},
+	{I_TURN_LEFT, 			0,		 					I_ROUTE_COMMON,		0},
+	{I_DRIVE_INTERSECTION, 	245 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,		4,		180},
+	{I_SET_SECOND_ROUTE,	0,							I_ROUTE_COMMON,		0}
+};
+
+int32_t i_stateOrder_15[50][5] = {
+	{I_READ_OBSTACLE, 		0,							I_ROUTE_COMMON,		0},	
+	{I_DRIVE_INTERSECTION, 	330 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_A,			0},	
+	{I_TURN_RIGHT, 			0,		 					I_ROUTE_B,			0},
+	{I_DRIVE_INTERSECTION, 	155 * I_MM_TO_STEPS_FAKTOR, I_ROUTE_B,			0},
+	{I_TURN_LEFT, 			0,							I_ROUTE_B,			0},	
+	{I_DRIVE_INTERSECTION, 	330 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,			0},
+	{I_TURN_LEFT, 			0,							I_ROUTE_B,			0},	
+	{I_DRIVE_INTERSECTION, 	155 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,			0},
+	{I_TURN_RIGHT, 			0, 							I_ROUTE_B,			0},
+
+	{I_DRIVE_INTERSECTION, 	315 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,		-5,		150},
+	{I_SET_SECOND_ROUTE,	0,							I_ROUTE_COMMON,		0},
+	{I_SET_SECOND_ROUTE,	0,							I_ROUTE_COMMON,		0}
+};
+
+int32_t i_stateOrder_11_22[50][5] = {
+	{I_READ_OBSTACLE, 		1,							I_ROUTE_COMMON,		0},	
+	{I_DRIVE_INTERSECTION, 	205 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_A,			0},	
+	{I_TURN_RIGHT,			0,							I_ROUTE_A,			0},
+	{I_DRIVE_INTERSECTION, 	155 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_A,			0},	
+	{I_TURN_RIGHT,			0,							I_ROUTE_B,			0},
+	{I_DRIVE_INTERSECTION, 	155 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,			0},
+	{I_TURN_LEFT,			0,							I_ROUTE_B,			0},
+	{I_DRIVE_INTERSECTION, 	205 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,			0},
+	{I_TURN_RIGHT,			0,							I_ROUTE_B,			0},
+	{I_DRIVE_INTERSECTION, 	335 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,		2,		150},
+	{I_VOID,				0,							I_ROUTE_COMMON,		0}	
+};
+
+int32_t i_stateOrder_11_23[50][5] = {
+	{I_READ_OBSTACLE, 		1,							I_ROUTE_COMMON,		0},	
+	{I_DRIVE_INTERSECTION, 	205 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_A,			0},	
+	{I_TURN_RIGHT,			0,							I_ROUTE_A,			0},
+	{I_DRIVE_INTERSECTION, 	155 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_A,			0},	
+	{I_TURN_RIGHT,			0,							I_ROUTE_B,			0},
+	{I_DRIVE_INTERSECTION, 	155 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,			0},
+	{I_TURN_LEFT,			0,							I_ROUTE_B,			0},
+	{I_DRIVE_INTERSECTION, 	205 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,			0},
+	{I_TURN_RIGHT,			0,							I_ROUTE_B,			0},
+	{I_DRIVE_INTERSECTION, 	335 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,		0},
+	{I_TURN_RIGHT,			0,							I_ROUTE_COMMON,		0},
+	{I_DRIVE_INTERSECTION, 	205 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,		3,		150},
+	{I_VOID,				0,							I_ROUTE_COMMON,		0}
+};
+
+int32_t i_stateOrder_11_24[50][5] = {
+	{I_READ_OBSTACLE, 		1,							I_ROUTE_COMMON,		0},	
+	{I_DRIVE_INTERSECTION, 	205 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_A,			0},	
+	{I_TURN_RIGHT,			0,							I_ROUTE_A,			0},
+	{I_DRIVE_INTERSECTION, 	155 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_A,			0},	
+	{I_TURN_RIGHT,			0,							I_ROUTE_B,			0},
+	{I_DRIVE_INTERSECTION, 	155 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,			0},
+	{I_TURN_LEFT,			0,							I_ROUTE_B,			0},
+	{I_DRIVE_INTERSECTION, 	205 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,			0},
+	{I_TURN_RIGHT,			0,							I_ROUTE_B,			0},
+	{I_DRIVE_INTERSECTION, 	645 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,		0},
+	
+	{I_READ_OBSTACLE, 		2,							I_ROUTE_COMMON,		0},	
+	{I_TURN_RIGHT,			0,							I_ROUTE_B,			0},	
+	{I_DRIVE_INTERSECTION, 	155 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,		0},	
+	{I_TURN_LEFT,			0,							I_ROUTE_B,			0},	
+	{I_TURN_RIGHT,			0,							I_ROUTE_A,			0},	
+	{I_DRIVE_INTERSECTION, 	155 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,		0},	
+	{I_TURN_RIGHT,			0,							I_ROUTE_B,			0},
+	{I_DRIVE_INTERSECTION, 	245 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,		-4,		150},
+	{I_VOID,				0,							I_ROUTE_COMMON,		0}
+};
+
+int32_t i_stateOrder_11_25[50][5] = {
+	{I_TURN_180,			350,						I_ROUTE_COMMON,		0},
+	{I_DRIVE_INTERSECTION, 	205 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_A,			0},	
+	{I_TURN_LEFT,			0,							I_ROUTE_COMMON,		0},
+	{I_DRIVE_INTERSECTION, 	245 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,		5,		10},
+	{I_VOID,				0,							I_ROUTE_COMMON,		0}
+};
+
+int32_t i_stateOrder_12_21[50][5] = {
+	{I_READ_OBSTACLE, 		1,							I_ROUTE_COMMON,		0},
+	{I_DRIVE_INTERSECTION, 	155 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_A,			0},
+	{I_TURN_LEFT,			0,							I_ROUTE_A,			0},
+	{I_DRIVE_INTERSECTION, 	555 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_A,			-1,		160},
+	{I_TURN_LEFT,			0,							I_ROUTE_B,			0},
+	{I_DRIVE_INTERSECTION, 	155 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,			0},
+	{I_TURN_LEFT,			0,							I_ROUTE_B,			0},
+	{I_DRIVE_INTERSECTION, 	205 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,			0},
+	{I_DRIVE_INTERSECTION, 	350 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,		-1,		5},
+	{I_VOID,				0,							I_ROUTE_COMMON,		0}	
+};
+
+int32_t i_stateOrder_12_23[50][5] = {
+	{I_TURN_180,			350,						I_ROUTE_COMMON,		0},
+	{I_DRIVE_INTERSECTION, 	355 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,		0},
+	{I_TURN_RIGHT,			0,							I_ROUTE_COMMON,		0},
+	{I_DRIVE_INTERSECTION, 	205 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,		3,		5},
+	{I_VOID,				0,							I_ROUTE_COMMON,		0}
+};
+	
+int32_t i_stateOrder_12_24[50][5] = {
+	{I_TURN_180,			350,						I_ROUTE_COMMON,		0},
+	{I_DRIVE_INTERSECTION, 	510 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,		0},
+	{I_READ_OBSTACLE, 		2,							I_ROUTE_COMMON,		0},
+	{I_DRIVE_INTERSECTION, 	155 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_A,			0},
+	{I_TURN_RIGHT,			0,							I_ROUTE_A,			0},
+	{I_DRIVE_INTERSECTION, 	400 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_A,			-4,		160}
+	{I_TURN_RIGHT,			0,							I_ROUTE_B,			0},
+	{I_DRIVE_INTERSECTION, 	155 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,			0},
+	{I_TURN_RIGHT,			0,							I_ROUTE_B,			0},
+	{I_DRIVE_INTERSECTION, 	245 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_A,			-4,		5},
+	{I_VOID,				0,							I_ROUTE_COMMON,		0}
+}
+
+int32_t i_stateOrder_12_25[50][5] = {
+	{I_READ_OBSTACLE, 		1,							I_ROUTE_COMMON,		0},
+	
+	{I_DRIVE_INTERSECTION, 	155 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_A,			0},
+	{I_TURN_LEFT,			0,							I_ROUTE_A,			0},
+	{I_DRIVE_INTERSECTION, 	555 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_A,			0},
+	
+	{I_TURN_LEFT,			0,							I_ROUTE_B,			0},
+	{I_DRIVE_INTERSECTION, 	205 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,			0},
+	{I_TURN_RIGHT,			0,							I_ROUTE_B,			0},
+	{I_DRIVE_INTERSECTION, 	155 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,			0},
+	{I_TURN_LEFT,			0,							I_ROUTE_B,			0},
+	{I_DRIVE_INTERSECTION, 	350 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,			0},	
+	
+	{I_TURN_LEFT,			0,							I_ROUTE_COMMON,		0},
+	{I_DRIVE_INTERSECTION, 	315 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,		5,		5},
+	{I_VOID,				0,							I_ROUTE_COMMON,		0}
+};
+
+int32_t i_stateOrder_13_21[50][5] = {
+	{I_TURN_LEFT,			0,							I_ROUTE_COMMON,		0},
+	{I_DRIVE_INTERSECTION, 	335 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,		0},
+	
+	{I_READ_OBSTACLE, 		1,							I_ROUTE_COMMON,		0},
+	
+	{I_DRIVE_INTERSECTION, 	155 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_A,			0},
+	{I_TURN_LEFT,			0,							I_ROUTE_A,			0},
+	{I_DRIVE_INTERSECTION, 	555 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_A,			-1,		200},
+	
+	{I_TURN_LEFT,			0,							I_ROUTE_B,			0},
+	{I_DRIVE_INTERSECTION, 	205 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,			0},
+	{I_TURN_RIGHT,			0,							I_ROUTE_B,			0},
+	{I_DRIVE_INTERSECTION, 	155 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,			0},
+	{I_TURN_LEFT,			0,							I_ROUTE_B,			0},
+	{I_DRIVE_INTERSECTION, 	350 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,			-1,		200},
+	
+	{I_VOID,				0,							I_ROUTE_COMMON,		0}
+};
+	
+int32_t i_stateOrder_13_22[50][5] = {
+	{I_TURN_LEFT,			0,							I_ROUTE_COMMON,		0},
+	{I_DRIVE_INTERSECTION, 	335 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON		-2,		200},
+	{I_VOID,				0,							I_ROUTE_COMMON,		0}		
+};
+
+int32_t i_stateOrder_13_24[50][5] = {
+	{I_TURN_RIGHT,			0,							I_ROUTE_COMMON,		0},
+	{I_DRIVE_INTERSECTION, 	310 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON		-2,		200},
+	
+	{I_READ_OBSTACLE, 		2,							I_ROUTE_COMMON,		0},	
+	
+	{I_DRIVE_INTERSECTION, 	155 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_A,			0},	
+	{I_TURN_RIGHT,			0,							I_ROUTE_A,			0},
+	{I_DRIVE_INTERSECTION, 	400 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_A,			-4,		200},	
+	
+	{I_TURN_RIGHT,			0,							I_ROUTE_B,			0},	
+	{I_DRIVE_INTERSECTION, 	155 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,			0},	
+	{I_TURN_LEFT,			0,							I_ROUTE_B,			0},
+	{I_DRIVE_INTERSECTION, 	155 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,			0},	
+	{I_TURN_RIGHT,			0,							I_ROUTE_B,			0},	
+	{I_DRIVE_INTERSECTION, 	245 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,			-4,		200},	
+	
+	{I_VOID,				0,							I_ROUTE_COMMON,		0}	
+};
+	
+	
+	
+	
+	
+	
+	
 
 
 void i_init(uint8_t level){											//Initialisierung des Interpreters
@@ -165,6 +393,10 @@ void i_loop(){											//Hauptloop des interpreters
 			i_turnLeft();
 			break;
 		
+		case I_TURN_180:
+			i_turn180();
+			break;
+		
 		case I_VOID:
 			break;
 			
@@ -205,14 +437,168 @@ void i_waitButton(){
 		i_preparedLvl1 = false;
 		i_nextState();
 	}
+	
+	static uint8_t buttonPressed2 = false;
+	if(!sn_getButton(S_BUTTON_2) && i_preparedLvl2){
+		buttonPressed2 = true;
+		delay(15);
+	}
+	if(sn_getButton(S_BUTTON_2) && buttonPressed2){
+		buttonPressed2 = false;
+		i_preparedLvl2 = false;
+		i_nextState();
+	}
 }
 
 void i_setFirstRoute(){
+	uint8_t adress = 0;
 	
+	for(uint8_t i = 0; i < 3; i++){
+		if(i_packetPriority[i] == 1){
+			adress = i_packetAddress[i];
+			break;
+		}
+	}		
+	
+	Serial.println(adress);
+	
+	for(int y = 0; y < I_MAX_VALUE_ARRAY_LENGTH; y++){
+		for(int x = 0; x < 5; x++){	
+			switch(adress){
+				case 1:
+					i_stateOrder[y][x] = i_stateOrder_11[y][x];
+					break;
+				case 2:
+					i_stateOrder[y][x] = i_stateOrder_12[y][x];
+					break;
+				case 3:
+					i_stateOrder[y][x] = i_stateOrder_13[y][x];
+					break;
+				case 4:
+					i_stateOrder[y][x] = i_stateOrder_14[y][x];
+					break;
+				case 5:
+					i_stateOrder[y][x] = i_stateOrder_15[y][x];
+					break;			
+			}
+		}
+	}
+	
+	i_stateOrder_pos = 0;
+	i_state = i_stateOrder[0][0];
+	i_nextState();
 }
 
 void i_setSecondRoute(){
+	uint8_t adress1 = 0;
+	uint8_t adress2 = 0;
 	
+	for(uint8_t i = 0; i < 3; i++){
+		if(i_packetPriority[i] == 1){
+			adress1 = i_packetAddress[i];
+			break;
+		}
+	}		
+	
+	for(uint8_t i = 0; i < 3; i++){
+		if(i_packetPriority[i] == -1){
+			adress2 = i_packetAddress[i];
+			break;
+		}
+	}
+	
+	Serial.println(adress);
+	
+	for(int y = 0; y < I_MAX_VALUE_ARRAY_LENGTH; y++){
+		for(int x = 0; x < 5; x++){	
+			switch(adress1){
+				case 1:
+					switch(adress2){
+						case 2:
+							i_stateOrder[y][x] = i_stateOrder_11_22[y][x];
+							break;
+						case 3:
+							i_stateOrder[y][x] = i_stateOrder_11_23[y][x];
+							break;
+						case 4:
+							i_stateOrder[y][x] = i_stateOrder_11_24[y][x];
+							break;
+						case 5:
+							i_stateOrder[y][x] = i_stateOrder_11_25[y][x];
+							break;
+					}						
+					break;
+				case 2:
+					switch(adress2){
+						case 1:
+							i_stateOrder[y][x] = i_stateOrder_12_21[y][x];
+							break;
+						case 3:
+							i_stateOrder[y][x] = i_stateOrder_12_23[y][x];
+							break;
+						case 4:
+							i_stateOrder[y][x] = i_stateOrder_12_24[y][x];
+							break;
+						case 5:
+							i_stateOrder[y][x] = i_stateOrder_12_25[y][x];
+							break;
+					}
+					break;
+				case 3:
+					switch(adress2){
+						case 1:
+							i_stateOrder[y][x] = i_stateOrder_13_21[y][x];
+							break;
+						case 2:
+							i_stateOrder[y][x] = i_stateOrder_13_22[y][x];
+							break;
+						case 4:
+							i_stateOrder[y][x] = i_stateOrder_13_24[y][x];
+							break;
+						case 5:
+							i_stateOrder[y][x] = i_stateOrder_13_25[y][x];
+							break;
+					}
+					break;
+				case 4:
+					switch(adress2){
+						case 1:
+							i_stateOrder[y][x] = i_stateOrder_14_21[y][x];
+							break;
+						case 2:
+							i_stateOrder[y][x] = i_stateOrder_14_22[y][x];
+							break;
+						case 3:
+							i_stateOrder[y][x] = i_stateOrder_14_23[y][x];
+							break;
+						case 5:
+							i_stateOrder[y][x] = i_stateOrder_14_25[y][x];
+							break;
+					}
+					break;
+				case 5:
+					switch(adress2){
+						case 1:
+							i_stateOrder[y][x] = i_stateOrder_15_21[y][x];
+							break;
+						case 2:
+							i_stateOrder[y][x] = i_stateOrder_15_22[y][x];
+							break;
+						case 3:
+							i_stateOrder[y][x] = i_stateOrder_15_23[y][x];
+							break;
+						case 4:
+							i_stateOrder[y][x] = i_stateOrder_15_24[y][x];
+							break;
+					}
+					break;			
+			}
+		}
+	}
+	
+	i_stateOrder_pos = 0;
+	i_state = i_stateOrder[0][0];
+	i_nextState();
 }
 
 void i_deliver(uint8_t number){																				//Temporäre Ablademethode	
@@ -311,17 +697,6 @@ void i_launch(){																							//Erster State um die Bifelder am Anfang 
 		else if(i_countBitsRead == 8){
 			i_packetPriority[2] = hl_curr_value;
 		}
-		Serial.println(i_countBitsRead);
-		Serial.print(i_packetPriority[0]);
-		Serial.print(", ");
-		Serial.print(i_packetPriority[1]);
-		Serial.print(", ");
-		Serial.println(i_packetPriority[2]);
-		
-		
-		Serial.print(hall_maxInBitField);
-		Serial.print(" ,");
-		Serial.println(hall_minInBitField);
 		
 		i_countBitsRead++;
 		
@@ -339,6 +714,21 @@ void i_launch(){																							//Erster State um die Bifelder am Anfang 
 			mc_stopSneak(MC_LEFT_MOTOR);						//Motoren anhalten
 			mc_stopSneak(MC_RIGHT_MOTOR);
 			mc_resetCompensation();								//Compensation auf 0 setzen
+			
+			Serial.print(i_packetAddress[0]);
+			Serial.print(", ");
+			Serial.print(i_packetAddress[1]);
+			Serial.print(", ");
+			Serial.println(i_packetAddress[2]);
+			
+			Serial.print(i_packetPriority[0]);
+			Serial.print(", ");
+			Serial.print(i_packetPriority[1]);
+			Serial.print(", ");
+			Serial.println(i_packetPriority[2]);
+			
+			Serial.println();
+		
 			i_nextState();										//In den nächsten State gehen
 		}
 	}
@@ -466,6 +856,16 @@ void i_turnRight(){
 	}
 }
 
+void i_turn180(){
+	if(i_initialiser){																						//Diesen Teil nur einmal aufrufen
+		i_initialiser = false;																				
+		mc_move(MC_LEFT_MOTOR, I_TURNSTEPS_180);															//Motoren bewegen
+		mc_move(MC_RIGHT_MOTOR, -I_TURNSTEPS_180);
+	}
+	if(mc_getMotorState(MC_LEFT_MOTOR) == MC_STOP ){														//Abbruchbedingung: Wenn der linke	Motor steht
+		i_nextState();																						//Nächsten State aufrufen
+	}
+}
 
 void i_nextState(){																							//Nächsten State aufrufen
 	sv_setPos(SV_SERVO_ARM, 0);																				//FÜR DEBUG: Servo zurückbewegen
