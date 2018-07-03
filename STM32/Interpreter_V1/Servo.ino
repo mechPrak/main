@@ -5,6 +5,17 @@
 #define PIN_SV_ARM PB7										//Pin für Servo: Bewegen des Auslegerarms
 #define PIN_SV_UNDEFINED PB6								//Pin für noch nicht definierten Servo
 
+#define ARM_LEFT 25
+#define ARM_MID 90
+#define ARM_RIGHT
+
+#define HATCH_OPEN 85
+#define HATCH_CLOSED
+
+#define SELECTOR_GREEN
+#define SELECTOR_YELLOW
+#define SELECTOR_RED
+
 Servo sv_servoSelector;										//Servo zur Auswahl des Abzulegenden Würfels : 7° 	bis 166°
 Servo sv_servoHatch;										//Servo zum Öffnen des Schachts über dem Arm : 80° 	bis 115°
 Servo sv_servoArm;											//Servo zum Bewegen des Arms 				 : 25°  bis 108°
@@ -13,6 +24,10 @@ void sv_init(){												//Initialisierung der Servos
 	sv_servoSelector.attach(PIN_SV_SELECTOR);
 	sv_servoHatch.attach(PIN_SV_HATCH);
 	sv_servoArm.attach(PIN_SV_ARM);
+	
+	sv_setPos(SV_SERVO_ARM, ARM_MID);
+	sv_setPos(SV_SERVO_HATCH, HATCH_OPEN);
+	sv_setPos(SV_SERVO_SELECTOR, 150);
 }
 
 void sv_prepare(uint8_t direction, uint8_t color){			//Bereitet den nächsten Abwurf vor

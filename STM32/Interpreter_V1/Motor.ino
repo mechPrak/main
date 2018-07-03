@@ -6,9 +6,9 @@
 #define PIN_ML_DIR PA6											//Direction Pin des linken Motors
 #define PIN_ML_ENABLE PB0										//Enable Pin des linken Motors
 
-#define MC_MIN_DELAY  30										//Minimaler Delay, mit dem gefahren werden kann
-#define MC_SNEAK_DELAY  300										//Delay, auf den beim Schleichen abgebremst wird
-#define MC_INITIAL_DELAY 2000									//Anfänglicher Delay in der Ramping-Delay
+uint32_t mc_minDelay = 30;										//Minimaler Delay, mit dem gefahren werden kann
+uint32_t mc_sneakDelay = 300;									//Delay, auf den beim Schleichen abgebremst wird
+uint32_t mc_initialDelay = 2000;								//Anfänglicher Delay in der Ramping-Delay
 
 HardwareTimer motor_timer(2);									//Erstellen des Timers für den Motorcontroller
 
@@ -58,11 +58,11 @@ void mc_init() {												//Initalisieren des Motorcontrollers
 }
 
 void mc_calculateRampingTable(){								//Berechnen der Ramping-Tabelle
-	float delay = MC_INITIAL_DELAY;												//Setzen des ersten Delay-Werts für die rekursive Berechnung
+	float delay = mc_initialDelay;												//Setzen des ersten Delay-Werts für die rekursive Berechnung
 	uint32_t currentDelayInt = 0;												//Gerundete Delay-Wert
 	
 	mc_rampingTableLenght --;													//Kompensation zur Zuordnung Rdes ichtige Delay-Wert zur richtigen Delay-Anzahl
-	while((uint16_t)delay > MC_MIN_DELAY){										//Solange der gerundete Delay-Wert nicht kleiner als der minimale Delay ist	
+	while((uint16_t)delay > mc_minDelay){										//Solange der gerundete Delay-Wert nicht kleiner als der minimale Delay ist	
 		if((uint16_t)delay == currentDelayInt){									//Wenn der gerundete Delay-Wert gleich dem letzten Delay-Wert ist
 			mc_rampingTable[mc_rampingTableLenght][1] ++;						//Erhöhen der Delay-Anzahl
 		} 
@@ -114,7 +114,7 @@ void mc_ISR(){													//Motor ISR: Setzt den nächsten Delay für die Stepp
 				break;
 				
 			case MC_COAST:																							//Maximale Geschwindigkeit halten
-				if(mc_delayCounter[i] > MC_MIN_DELAY + mc_compensationInt[i]){										//Prüfen, ob genug Zeit seit dem Letzten Step vergangen ist und somit ein Step gefahren werden muss
+				if(mc_delayCounter[i] > mc_minDelay + mc_compensationInt[i]){										//Prüfen, ob genug Zeit seit dem Letzten Step vergangen ist und somit ein Step gefahren werden muss
 					
 					mc_motorStep(i);																				//Einen Step fahren
 					mc_stepsMade[i]++;																				//Anzahl der gefahrenen Steps erhöhen
@@ -138,7 +138,7 @@ void mc_ISR(){													//Motor ISR: Setzt den nächsten Delay für die Stepp
 						mc_rampingTablePos[i] --;																	//In der Raping Tabelle einen Schritt nach oben machen
 						mc_rampingDelayCounter[i] = mc_rampingTable[mc_rampingTablePos[i]][1];						//Counter für die Anzahl der gefahrenen Steps pro Delay wieder auf den richtigen Wert setzen
 						
-						if(mc_sneakEnable[i] && mc_rampingTable[mc_rampingTablePos[i]][0] >= MC_SNEAK_DELAY){		//Prüfen ob Sneaken aktiviert ist und der jetzige Delay größer als der Sneak-Delay ist
+						if(mc_sneakEnable[i] && mc_rampingTable[mc_rampingTablePos[i]][0] >= mc_sneakDelay){		//Prüfen ob Sneaken aktiviert ist und der jetzige Delay größer als der Sneak-Delay ist
 							mc_currentState[i] = MC_SNEAK;															//Übergehen in den Sneak-State
 						}
 						else if(mc_stepsMade[i] >= mc_stepsTotal[i]){												//Prüfen ob alle Steps gefahren wurden
@@ -153,7 +153,7 @@ void mc_ISR(){													//Motor ISR: Setzt den nächsten Delay für die Stepp
 				break;
 				
 			case MC_SNEAK:																							//Sneaken
-				if(mc_delayCounter[i] > MC_SNEAK_DELAY + mc_compensationInt[i]){									//Prüfen, ob genug Zeit seit dem Letzten Step vergangen ist und somit ein Step gefahren werden muss
+				if(mc_delayCounter[i] > mc_sneakDelay + mc_compensationInt[i]){									//Prüfen, ob genug Zeit seit dem Letzten Step vergangen ist und somit ein Step gefahren werden muss
 					
 					if(mc_sneakFlagDisable[i]){																		//Prüfen ob die Sneak-Disable-Flag gesetzt wurde
 						mc_sneakFlagDisable[i] = false;																//Die Sneak-Disable-Flag wieder auf false resetten
@@ -218,10 +218,10 @@ void mc_motorStep(uint8_t motor){								//Gibt einen Puls an den entsprechenden
 void mc_setCompensation(uint8_t motor, float compensation){		//Setzt die Kompensation für die Motoren entsprechend des aktuellen States
 	switch(mc_currentState[motor]){
 		case MC_COAST:
-			mc_compensationInt[motor] = (float)compensation * (float)MC_MIN_DELAY;
+			mc_compensationInt[motor] = (float)compensation * (float)mc_minDelay;
 			break;
 		case MC_SNEAK:
-			mc_compensationInt[motor] = (float)compensation * (float)MC_SNEAK_DELAY;
+			mc_compensationInt[motor] = (float)compensation * (float)mc_sneakDelay;
 			break;
 		case MC_RAMP_UP:
 			mc_compensationInt[motor] = (float)compensation * (float)mc_rampingTable[mc_rampingTablePos[motor]][0];
@@ -272,4 +272,20 @@ uint32_t mc_getSteps(uint32_t motor){							//Gibt die bereits gefahrenen Steps 
 void mc_stopMotors(){
 	mc_currentState[0] = MC_STOP;
 	mc_currentState[1] = MC_STOP;
+}
+
+void mc_setSpeedValues(uint32_t init, uint32_t min, uint32_t sneak){
+	mc_initialDelay = init;
+	mc_minDelay = min;
+	mc_sneakDelay = sneak;
+	
+
+	for(uint32_t i = 0; i < 500; i++){
+		mc_rampingTable[i][0] = 0;
+		mc_rampingTable[i][1] = 0;
+	}
+	mc_rampingTableLenght = 0;
+	mc_rampingTableSteps = 0;
+	
+	mc_calculateRampingTable();
 }

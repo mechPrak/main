@@ -72,15 +72,7 @@ void setup() {
 	mc_init();
 	sn_init();
 	sv_init();
-	//i_init();
-	db_init();
-	
-	/*
-	sv_setPos(SV_SERVO_ARM, 105);
-	sv_setPos(SV_SERVO_HATCH, 120);
-	sv_setPos(SV_SERVO_SELECTOR, 150);
-	delay(1000);
-	*/
+	db_init();	
 }
 
 void loop() {

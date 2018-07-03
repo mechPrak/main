@@ -34,6 +34,7 @@ uint16_t sn_getLightSenor(uint8_t sensor){			//Gibt den aktuellen Wert des gewä
 		case S_LS_RR:
 			return analogRead(PIN_LS_RR);
 	}
+	return 0;
 }
 
 uint16_t sn_getDistance(){							//Gibt den aktuellen Wert des Entfernungssensors aus
@@ -45,7 +46,7 @@ uint16_t sn_getHallSensor(){
 }
 
 void sn_debug() {									//Gibt alle Sensorwerte per Serial.print zum debuggen aus
-	/*Serial.print("LL: ");
+	Serial.print("LL: ");
 	Serial.print(analogRead(PIN_LS_LL));
 	Serial.print("  LM: ");
 	Serial.print(analogRead(PIN_LS_LM));
@@ -55,7 +56,7 @@ void sn_debug() {									//Gibt alle Sensorwerte per Serial.print zum debuggen 
 	Serial.print(analogRead(PIN_LS_RR));
 	Serial.print("  Dist: ");
 	Serial.print(analogRead(PIN_DIST));
-	Serial.print("  Hall: ");*/
+	Serial.print("  Hall: ");
 	Serial.println(analogRead(PIN_HALL));
 	delay(10);
 }
@@ -68,4 +69,5 @@ uint8_t sn_getButton(uint32_t button){
 	else if (button == S_BUTTON_2){
 		return digitalRead(PIN_BUTTON_2);
 	}
+	return 0;
 }
