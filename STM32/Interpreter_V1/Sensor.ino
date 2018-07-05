@@ -58,7 +58,7 @@ void sn_debug() {									//Gibt alle Sensorwerte per Serial.print zum debuggen 
 	Serial.print(analogRead(PIN_DIST));
 	Serial.print("  Hall: ");
 	Serial.println(analogRead(PIN_HALL));
-	delay(10);
+	delay(100);
 }
 
 

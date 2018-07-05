@@ -5,42 +5,114 @@
 #define PIN_SV_ARM PB7										//Pin für Servo: Bewegen des Auslegerarms
 #define PIN_SV_UNDEFINED PB6								//Pin für noch nicht definierten Servo
 
-#define ARM_LEFT 25
-#define ARM_MID 90
-#define ARM_RIGHT
+
+//kommen in interpreter auhc vor
+#define ARM_LEFT 164
+#define ARM_MID 89
+#define ARM_RIGHT 16
 
 #define HATCH_OPEN 85
-#define HATCH_CLOSED
+#define HATCH_CLOSED 120
 
-#define SELECTOR_GREEN
-#define SELECTOR_YELLOW
-#define SELECTOR_RED
+#define SELECTOR_GREEN 22
+#define SELECTOR_YELLOW 88
+#define SELECTOR_RED 170
 
 Servo sv_servoSelector;										//Servo zur Auswahl des Abzulegenden Würfels : 7° 	bis 166°
 Servo sv_servoHatch;										//Servo zum Öffnen des Schachts über dem Arm : 80° 	bis 115°
 Servo sv_servoArm;											//Servo zum Bewegen des Arms 				 : 25°  bis 108°
 
+HardwareTimer servo_timer(3);
+
+uint8_t sv_centerArmFlag = false;
+uint8_t sv_loadArmFlag = false;
+
+
+volatile uint32_t sv_isrCounter = 0;
+volatile uint32_t sv_centerCounter = 0;
+volatile uint32_t sv_loadArmCounter = 0;
+
+volatile uint32_t sv_color = 0;
+
 void sv_init(){												//Initialisierung der Servos
 	sv_servoSelector.attach(PIN_SV_SELECTOR);
 	sv_servoHatch.attach(PIN_SV_HATCH);
 	sv_servoArm.attach(PIN_SV_ARM);
+		
 	
-	sv_setPos(SV_SERVO_ARM, ARM_MID);
-	sv_setPos(SV_SERVO_HATCH, HATCH_OPEN);
-	sv_setPos(SV_SERVO_SELECTOR, 150);
+	//Timer initialisieren auf 1kHz
+	servo_timer.pause();
+	servo_timer.setPeriod(1000);
+	servo_timer.setChannel1Mode(TIMER_OUTPUT_COMPARE);
+	servo_timer.setCompare(TIMER_CH1, 1);
+	servo_timer.attachCompare1Interrupt(sv_ISR);
+	servo_timer.refresh();
+	servo_timer.resume();
 }
 
-void sv_prepare(uint8_t direction, uint8_t color){			//Bereitet den nächsten Abwurf vor
-	//selector auf farbe setzen
-	//warten bis farbe an richtiger pos
-	//hatch öffnen
-	//warten bis würfel gefallen
-	//arm absetzten
+void sv_initServos(){
+	sv_setPos(SV_SERVO_HATCH, HATCH_CLOSED);
+	sv_setPos(SV_SERVO_SELECTOR, SELECTOR_RED);
+	sv_centerArm();
 }
 
-void sv_drop(){												//Hebt Auslegerarm hoch um den Würfel abzuliefer
-	//arm hochheben 
-	//prepare next
+void sv_ISR(){
+	sv_isrCounter++;
+	i_delayCounter++;
+	if(sv_centerArmFlag){
+		sv_centerCounter ++;
+		
+	}
+	if(sv_loadArmFlag){
+		sv_loadArmCounter ++;
+	}
+}
+
+void sv_loop(){
+	
+	if(sv_centerArmFlag){
+		sv_setPos(SV_SERVO_ARM, ARM_MID + 20);
+		Serial.println("center arm mid + 20");
+		if(sv_centerCounter > 1000){
+			sv_setPos(SV_SERVO_ARM, ARM_MID);
+			sv_centerArmFlag = false;
+			Serial.println("center arm mid");
+		}		
+	}
+	
+	if(sv_loadArmFlag){
+		switch(sv_color){
+			case 0:
+				sv_setPos(SV_SERVO_SELECTOR, SELECTOR_GREEN);
+				//Serial.println("load green");
+				break;
+			case 1:
+				sv_setPos(SV_SERVO_SELECTOR, SELECTOR_YELLOW);
+				Serial.println("load yellow");
+				break;
+			case 2:
+				sv_setPos(SV_SERVO_SELECTOR, SELECTOR_RED);
+				Serial.println("load red");
+				break;
+		}
+		if(sv_loadArmCounter > 500 && sv_loadArmCounter < 550){
+			sv_setPos(SV_SERVO_HATCH, HATCH_OPEN);
+			Serial.println("open hatch");
+		}
+		
+		if(sv_loadArmCounter > 550 && sv_loadArmCounter < 750){
+			sv_setPos(SV_SERVO_ARM, ARM_MID - 2);
+		}
+		if(sv_loadArmCounter > 800 && sv_loadArmCounter < 1000){
+			sv_setPos(SV_SERVO_ARM, ARM_MID);
+		}
+		
+		if(sv_loadArmCounter > 1500){
+			sv_setPos(SV_SERVO_HATCH, HATCH_CLOSED);
+			sv_loadArmFlag = false;
+			Serial.println("close hatch");
+		}
+	}
 }
 
 void sv_setPos(uint8_t servo, uint8_t pos){					//Setzt die Zielposition des gewählten Servos
@@ -54,5 +126,27 @@ void sv_setPos(uint8_t servo, uint8_t pos){					//Setzt die Zielposition des gew
 		case SV_SERVO_ARM:
 			sv_servoArm.write(pos);
 			break;
+	}
+}
+
+void sv_centerArm(){
+	sv_centerArmFlag = true;
+	sv_centerCounter = 0;
+}
+
+void sv_loadArm(uint8_t nColor){
+	sv_loadArmFlag = true;
+	sv_loadArmCounter = 0;
+	
+	sv_color = nColor;
+}
+
+void sv_lowerArm(int8_t direction){
+	Serial.println("lower Arm");
+	if(direction < 0){
+		sv_setPos(SV_SERVO_ARM, ARM_LEFT);
+	}
+	else {
+		sv_setPos(SV_SERVO_ARM, ARM_RIGHT);
 	}
 }

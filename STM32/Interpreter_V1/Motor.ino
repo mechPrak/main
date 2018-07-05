@@ -6,9 +6,9 @@
 #define PIN_ML_DIR PA6											//Direction Pin des linken Motors
 #define PIN_ML_ENABLE PB0										//Enable Pin des linken Motors
 
-uint32_t mc_minDelay = 30;										//Minimaler Delay, mit dem gefahren werden kann
-uint32_t mc_sneakDelay = 300;									//Delay, auf den beim Schleichen abgebremst wird
-uint32_t mc_initialDelay = 2000;								//Anfänglicher Delay in der Ramping-Delay
+uint32_t mc_minDelay = 20;										//Minimaler Delay, mit dem gefahren werden kann
+uint32_t mc_sneakDelay = 150;									//Delay, auf den beim Schleichen abgebremst wird
+uint32_t mc_initialDelay = 1500;								//Anfänglicher Delay in der Ramping-Delay
 
 HardwareTimer motor_timer(2);									//Erstellen des Timers für den Motorcontroller
 
