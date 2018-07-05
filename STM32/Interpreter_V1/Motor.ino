@@ -57,7 +57,7 @@ void mc_init() {												//Initalisieren des Motorcontrollers
 	motor_timer.resume();
 }
 
-void mc_calculateRampingTable(){								//Berechnen der Ramping-Tabelle
+void mc_calculateRampingTable(){												//Berechnen der Ramping-Tabelle
 	float delay = mc_initialDelay;												//Setzen des ersten Delay-Werts für die rekursive Berechnung
 	uint32_t currentDelayInt = 0;												//Gerundete Delay-Wert
 	

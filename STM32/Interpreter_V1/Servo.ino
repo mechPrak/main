@@ -8,15 +8,15 @@
 
 //kommen in interpreter auhc vor
 #define ARM_LEFT 164
-#define ARM_MID 89
+#define ARM_MID 88
 #define ARM_RIGHT 16
 
 #define HATCH_OPEN 85
 #define HATCH_CLOSED 120
 
 #define SELECTOR_GREEN 22
-#define SELECTOR_YELLOW 88
-#define SELECTOR_RED 170
+#define SELECTOR_YELLOW 85
+#define SELECTOR_RED 167
 
 Servo sv_servoSelector;										//Servo zur Auswahl des Abzulegenden Würfels : 7° 	bis 166°
 Servo sv_servoHatch;										//Servo zum Öffnen des Schachts über dem Arm : 80° 	bis 115°
@@ -100,14 +100,26 @@ void sv_loop(){
 			Serial.println("open hatch");
 		}
 		
-		if(sv_loadArmCounter > 550 && sv_loadArmCounter < 750){
+		if(sv_loadArmCounter > 550 && sv_loadArmCounter < 650){
 			sv_setPos(SV_SERVO_ARM, ARM_MID - 2);
 		}
-		if(sv_loadArmCounter > 800 && sv_loadArmCounter < 1000){
+		if(sv_loadArmCounter > 650 && sv_loadArmCounter < 750){
+			sv_setPos(SV_SERVO_ARM, ARM_MID + 4);
+		}
+		
+		if(sv_loadArmCounter > 750 && sv_loadArmCounter < 850){
+			sv_setPos(SV_SERVO_ARM, ARM_MID - 2);
+		}
+		
+		if(sv_loadArmCounter > 850 && sv_loadArmCounter < 950){
+			sv_setPos(SV_SERVO_ARM, ARM_MID + 4);
+		}
+		
+		if(sv_loadArmCounter > 950 && sv_loadArmCounter < 1050){
 			sv_setPos(SV_SERVO_ARM, ARM_MID);
 		}
 		
-		if(sv_loadArmCounter > 1500){
+		if(sv_loadArmCounter > 2500){
 			sv_setPos(SV_SERVO_HATCH, HATCH_CLOSED);
 			sv_loadArmFlag = false;
 			Serial.println("close hatch");

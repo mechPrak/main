@@ -13,7 +13,7 @@
 #define I_SNEAKSTEPS 500
 
 #define I_LAUNCH_STEPS 4500								//Steps für die Anfangsphase mit Bitfeldern
-#define I_MAX_VALUE_ARRAY_LENGTH 50
+#define I_MAX_VALUE_ARRAY_LENGTH 60
 
 uint8_t i_currentRoute = I_ROUTE_A;						//Route die gefahren werden muss um dem nächsten Hinderniss auszuweichen
 uint8_t i_packetAddress[3] = {0, 0, 0};					//gelesene Adressen: 0 -> grün, 1-> gelb, 2 -> rot
@@ -53,10 +53,10 @@ int32_t i_stateOrder_lvl_1[][5] = {
 	{I_DRIVE_INTERSECTION, 	155 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,			0},
 	{I_TURN_RIGHT, 			0, 							I_ROUTE_B,			0},
 	
-	{I_DRIVE_INTERSECTION, 	315 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_A,		-5,		180 * I_MM_TO_STEPS_FAKTOR},
-	{I_DRIVE_INTERSECTION, 	315 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,		-5,		150 * I_MM_TO_STEPS_FAKTOR},
+	{I_DRIVE_INTERSECTION, 	315 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_A,			-5,		170 * I_MM_TO_STEPS_FAKTOR},
+	{I_DRIVE_INTERSECTION, 	315 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,			-5,		135 * I_MM_TO_STEPS_FAKTOR},
 	{I_PREPARE,				0,							I_ROUTE_COMMON,		1},
-	{I_WAIT,				2000,						I_ROUTE_COMMON,		0},
+	{I_WAIT,				1500,						I_ROUTE_COMMON,		0},
 	{I_TURN_RIGHT,			0,							I_ROUTE_COMMON,		0},
 	
 	{I_DRIVE_INTERSECTION, 	350 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,		1,		160 * I_MM_TO_STEPS_FAKTOR},
@@ -66,20 +66,23 @@ int32_t i_stateOrder_lvl_1[][5] = {
 	{I_READ_OBSTACLE, 		1,							I_ROUTE_COMMON,		0},	
 	{I_DRIVE_INTERSECTION, 	205 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_A,			0},	
 	{I_TURN_RIGHT,			0,							I_ROUTE_A,			0},
-	{I_DRIVE_INTERSECTION, 	155 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_A,			0},	
+	//{I_DRIVE_INTERSECTION, 	155 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_A,			0},	
 	{I_TURN_RIGHT,			0,							I_ROUTE_B,			0},
 	{I_DRIVE_INTERSECTION, 	155 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,			0},
 	{I_TURN_LEFT,			0,							I_ROUTE_B,			0},
 	{I_DRIVE_INTERSECTION, 	205 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,			0},
 	{I_TURN_RIGHT,			0,							I_ROUTE_B,			0},
 	
-	{I_DRIVE_INTERSECTION, 	335 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_A,			2,		110 * I_MM_TO_STEPS_FAKTOR},
-	{I_DRIVE_INTERSECTION, 	335 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,			2,		75 * I_MM_TO_STEPS_FAKTOR},
+	{I_DRIVE_INTERSECTION, 	490 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_A,			2,		210 * I_MM_TO_STEPS_FAKTOR},
+	{I_DRIVE_INTERSECTION, 	100 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,			2,		500 * I_MM_TO_STEPS_FAKTOR},
+	{I_DRIVE_INTERSECTION, 	245 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,			2,		45 * I_MM_TO_STEPS_FAKTOR},
+	
 	{I_PREPARE,				0,							I_ROUTE_COMMON,		3},
-	{I_WAIT,				700,						I_ROUTE_B,			0},
+	{I_WAIT,				700,						I_ROUTE_COMMON,		0},
 	{I_TURN_RIGHT,			0,							I_ROUTE_COMMON,		0},
 	
-	{I_DRIVE_INTERSECTION, 	205 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,		3,		100 * I_MM_TO_STEPS_FAKTOR},
+	{I_DRIVE_INTERSECTION, 	100 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,		3,		500 * I_MM_TO_STEPS_FAKTOR},
+	{I_DRIVE_INTERSECTION, 	110 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,		3,		45 * I_MM_TO_STEPS_FAKTOR},
 	{I_PREPARE,				0,							I_ROUTE_COMMON,		4},
 	{I_TURN_LEFT,			0,							I_ROUTE_COMMON,		0},
 	{I_DRIVE_INTERSECTION, 	155 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,		0},
@@ -97,8 +100,10 @@ int32_t i_stateOrder_lvl_1[][5] = {
 	{I_DRIVE_INTERSECTION, 	155 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,		0},	
 	{I_TURN_RIGHT,			0,							I_ROUTE_B,			0},	
 		
-	{I_DRIVE_INTERSECTION, 	245 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,		-4,		290 * I_MM_TO_STEPS_FAKTOR},
-	{I_VOID,				0,							I_ROUTE_COMMON,		0}
+	{I_DRIVE_INTERSECTION, 	245 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_A,			-4,		165 * I_MM_TO_STEPS_FAKTOR},
+	{I_DRIVE_INTERSECTION, 	245 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,			-4,		125 * I_MM_TO_STEPS_FAKTOR},
+	{I_FINISHED,			0,							I_ROUTE_COMMON,		0}
+	
 };
 
 int32_t i_stateOrder_lvl_2_begin[][5] = {
@@ -196,6 +201,9 @@ void i_loop(){																								//Hauptloop des interpreters
 		case I_WAIT:
 			i_wait();			
 			break;
+		case I_FINISHED:
+			i_finish();
+			break;
 	}
 	
 }
@@ -220,12 +228,14 @@ void prepareLevel(){
 		i_preparedLvl2 = false;
 		i_preparedLvl1 = true;
 		i_init(1);
+		db_setRgbLed(0,0,0);
 		delay(500);
 	}
 	if(!sn_getButton(S_BUTTON_2) && !i_preparedLvl2){
 		i_preparedLvl1 = false;
 		i_preparedLvl2 = true;
 		i_init(2);
+		db_setRgbLed(0,0,0);
 		delay(500);
 	}
 }
@@ -431,8 +441,13 @@ void i_driveToIntersection(){
 		
 		
 		//Prepare Arm
+
 		if(i_stateOrder[i_stateOrder_pos][3] != 0){
-			sv_lowerArm(i_stateOrder[i_stateOrder_pos][3]);
+			for(uint8_t i = 0; i < 3; i++){
+				if(abs(i_stateOrder[i_stateOrder_pos][3]) == i_packetAddress[i]){
+					sv_lowerArm(i_stateOrder[i_stateOrder_pos][3]);
+				}
+			}
 		}
 		
 		
@@ -524,6 +539,8 @@ void i_wait(){
 	
 }
 
-
+void i_finish(){
+	db_setRgbLed(0,1,0);			//Grün blinken
+}
 
 

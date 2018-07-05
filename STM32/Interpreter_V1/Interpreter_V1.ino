@@ -51,6 +51,7 @@ enum{
 	I_SET_SECOND_ROUTE,			//Setzt das Array für die zweite Route
 	I_PREPARE,
 	I_WAIT,
+	I_FINISHED,
 	
 	I_ROUTE_COMMON,				//Interpreter-Argument: Gemeinsame Route
 	I_ROUTE_A,					//Interpreter-Argument: Alternative Route A
@@ -81,25 +82,31 @@ void loop() {
 	i_loop();
 	sv_loop();
 	
+	
+	//sv_setPos(SV_SERVO_ARM, 16);
+	//delay(2000);
+	//sv_setPos(SV_SERVO_ARM, 87);
+	//delay(2000);
+	
 	/*
 	sv_setPos(SV_SERVO_ARM, 162);
 	delay(1000);
 	
-	sv_setPos(SV_SERVO_ARM, 89 + 20);
+	sv_setPos(SV_SERVO_ARM, 87 + 20);
 	delay(500);
-	sv_setPos(SV_SERVO_ARM, 89);
-	delay(2000);
 	sv_setPos(SV_SERVO_ARM, 87);
+	delay(2000);
+	sv_setPos(SV_SERVO_ARM, 85);
 	delay(2000);
 	
 	sv_setPos(SV_SERVO_ARM, 16);
 	delay(1000);
 	
-	sv_setPos(SV_SERVO_ARM, 89 + 20);
+	sv_setPos(SV_SERVO_ARM, 87 + 20);
 	delay(1000);
-	sv_setPos(SV_SERVO_ARM, 89);
-	delay(2000);
 	sv_setPos(SV_SERVO_ARM, 87);
+	delay(2000);
+	sv_setPos(SV_SERVO_ARM, 85);
 	delay(2000);
 	
 	/*
@@ -125,12 +132,44 @@ void loop() {
 	sv_setPos(SV_SERVO_HATCH, 120);
 	delay(2000);
 	
-	sv_setPos(SV_SERVO_SELECTOR, 88);
+	sv_setPos(SV_SERVO_ARM, 162);
+	delay(1000);
+	
+	sv_setPos(SV_SERVO_ARM, 87 + 20);
+	delay(500);
+	sv_setPos(SV_SERVO_ARM, 88);
+	delay(2000);
+	sv_setPos(SV_SERVO_ARM, 86);
+	delay(2000);
+	sv_setPos(SV_SERVO_ARM, 88);
+	delay(2000);
+	
+	
+	
+	
+	
+	
+	
+	sv_setPos(SV_SERVO_SELECTOR, 85);
 	delay(2000);
 	sv_setPos(SV_SERVO_HATCH, 85);
 	delay(2000);
 	sv_setPos(SV_SERVO_HATCH, 120);
 	delay(2000);
+	
+	sv_setPos(SV_SERVO_ARM, 162);
+	delay(1000);
+	
+	sv_setPos(SV_SERVO_ARM, 87 + 20);
+	delay(500);
+	sv_setPos(SV_SERVO_ARM, 88);
+	delay(2000);
+	sv_setPos(SV_SERVO_ARM, 86);
+	delay(2000);
+	sv_setPos(SV_SERVO_ARM, 88);
+	delay(2000);
+	
+	
 	
 	
 	sv_setPos(SV_SERVO_SELECTOR, 22);
@@ -140,11 +179,38 @@ void loop() {
 	sv_setPos(SV_SERVO_HATCH, 120);
 	delay(2000);
 	
-	sv_setPos(SV_SERVO_SELECTOR, 88);
+	sv_setPos(SV_SERVO_ARM, 162);
+	delay(1000);
+	
+	sv_setPos(SV_SERVO_ARM, 87 + 20);
+	delay(500);
+	sv_setPos(SV_SERVO_ARM, 88);
+	delay(2000);
+	sv_setPos(SV_SERVO_ARM, 86);
+	delay(2000);
+	sv_setPos(SV_SERVO_ARM, 88);
+	delay(2000);
+	
+	
+	
+	
+	sv_setPos(SV_SERVO_SELECTOR, 85);
 	delay(2000);
 	sv_setPos(SV_SERVO_HATCH, 85);
 	delay(2000);
 	sv_setPos(SV_SERVO_HATCH, 120);
+	delay(2000);
+	
+	sv_setPos(SV_SERVO_ARM, 162);
+	delay(1000);
+	
+	sv_setPos(SV_SERVO_ARM, 87 + 20);
+	delay(500);
+	sv_setPos(SV_SERVO_ARM, 88);
+	delay(2000);
+	sv_setPos(SV_SERVO_ARM, 86);
+	delay(2000);
+	sv_setPos(SV_SERVO_ARM, 88);
 	delay(2000);
 	*/
 
