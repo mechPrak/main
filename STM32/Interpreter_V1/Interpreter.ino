@@ -23,6 +23,8 @@ uint8_t i_stateOrder_pos = 0;							//Position im Statearray des Aktuellen Level
 uint8_t i_state = I_WAIT_BUTTON;						//Aktueller state (initial: auf Knopfdruck warten)
 uint8_t i_initialiser = true;							//Boolean um States zu initialisieren
 
+uint8_t i_lastPackage = false;
+
 
 uint8_t i_preparedLvl1 = false;
 uint8_t i_preparedLvl2 = false;
@@ -66,7 +68,6 @@ int32_t i_stateOrder_lvl_1[][5] = {
 	{I_READ_OBSTACLE, 		1,							I_ROUTE_COMMON,		0},	
 	{I_DRIVE_INTERSECTION, 	205 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_A,			0},	
 	{I_TURN_RIGHT,			0,							I_ROUTE_A,			0},
-	//{I_DRIVE_INTERSECTION, 	155 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_A,			0},	
 	{I_TURN_RIGHT,			0,							I_ROUTE_B,			0},
 	{I_DRIVE_INTERSECTION, 	155 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,			0},
 	{I_TURN_LEFT,			0,							I_ROUTE_B,			0},
@@ -109,11 +110,427 @@ int32_t i_stateOrder_lvl_1[][5] = {
 int32_t i_stateOrder_lvl_2_begin[][5] = {
 	{I_WAIT_BUTTON,			0,							I_ROUTE_COMMON,     0},
 	{I_LAUNCH,				0,							I_ROUTE_COMMON,		0},
-	{I_DRIVE_INTERSECTION,	645 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,		0},
-	{I_TURN_RIGHT,			0,							I_ROUTE_COMMON,		0},
-	{I_DRIVE_INTERSECTION,	350 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,		0},
 	{I_SET_FIRST_ROUTE,		0,							I_ROUTE_COMMON,		0}
 };
+
+int32_t i_stateOrder_11[][5] = {
+	{I_PREPARE,				0,							I_ROUTE_COMMON,		1},
+	{I_READ_OBSTACLE,		0,							I_ROUTE_COMMON,		0,	0},
+	
+	{I_DRIVE_INTERSECTION,	645*I_MM_TO_STEPS_FAKTOR, 	I_ROUTE_A, 			0, 	0},
+	
+	{I_TURN_RIGHT,			0,							I_ROUTE_B,			0,	0},
+	{I_DRIVE_INTERSECTION, 	155*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,			0, 	0},
+	{I_TURN_LEFT,			0,							I_ROUTE_B,			0,	0},
+	{I_DRIVE_INTERSECTION,	330*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,			0,	0},
+	{I_TURN_LEFT,			0,							I_ROUTE_B,			0,	0},
+	{I_DRIVE_INTERSECTION,	155*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,			0,	0},
+	{I_TURN_RIGHT,			0,							I_ROUTE_B,			0,	0},
+	{I_DRIVE_INTERSECTION,	315*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,			0,	0},
+		
+	{I_TURN_RIGHT,			0,							I_ROUTE_COMMON,		0,	0},
+	{I_DRIVE_INTERSECTION,	350*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,		1,	160 * I_MM_TO_STEPS_FAKTOR},
+	{I_SET_SECOND_ROUTE,	0,							I_ROUTE_COMMON,		0,	0}
+};
+
+int32_t i_stateOrder_12[][5] = {
+	{I_PREPARE,				0,							I_ROUTE_COMMON,		2},
+	{I_TURN_RIGHT, 			0,		 					I_ROUTE_COMMON,		0,	0},
+	{I_DRIVE_INTERSECTION, 	555 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,		0,	0},
+	{I_TURN_LEFT, 			0,		 					I_ROUTE_COMMON,		0,	0},
+	{I_DRIVE_INTERSECTION, 	490 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,		-2,	390 * I_MM_TO_STEPS_FAKTOR},
+	{I_SET_SECOND_ROUTE,	0,							I_ROUTE_COMMON,		0,	0}
+};
+
+int32_t i_stateOrder_13[][5] = {
+	{I_PREPARE,				0,							I_ROUTE_COMMON,		3},
+	{I_TURN_RIGHT, 			0,		 					I_ROUTE_COMMON,		0,	0},
+	{I_DRIVE_INTERSECTION, 	350 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,		0,	0},
+	{I_TURN_LEFT, 			0,		 					I_ROUTE_COMMON,		0,	0},
+	{I_DRIVE_INTERSECTION, 	155 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,		0,	0},
+	{I_TURN_RIGHT, 			0,		 					I_ROUTE_COMMON,		0,	0},
+	{I_DRIVE_INTERSECTION,	100*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,		-3,	500*I_MM_TO_STEPS_FAKTOR},
+	{I_DRIVE_INTERSECTION,	110*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,		-3,	45*I_MM_TO_STEPS_FAKTOR},
+	{I_SET_SECOND_ROUTE,	0,							I_ROUTE_COMMON,		0,	0}
+};
+
+int32_t i_stateOrder_14[][5] = {
+	{I_PREPARE,				0,							I_ROUTE_COMMON,		4},
+	{I_TURN_RIGHT, 			0,		 					I_ROUTE_COMMON,		0,	0},
+	{I_DRIVE_INTERSECTION, 	155 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,		0,	0},
+	{I_TURN_RIGHT, 			0,		 					I_ROUTE_COMMON,		0,	0},
+	{I_DRIVE_INTERSECTION, 	310 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,		0,	0},
+	{I_TURN_LEFT, 			0,		 					I_ROUTE_COMMON,		0,	0},
+	{I_DRIVE_INTERSECTION, 	245 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,		0,	0},
+	{I_TURN_180,			0,							I_ROUTE_COMMON,		0,	0},
+	{I_DRIVE_INTERSECTION,	245 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,		-4,	145 * I_MM_TO_STEPS_FAKTOR},
+	{I_SET_SECOND_ROUTE,	0,							I_ROUTE_COMMON,		0,	0}
+};
+
+int32_t i_stateOrder_15[][5] = {
+	{I_PREPARE,				0,							I_ROUTE_COMMON,		5},
+	{I_READ_OBSTACLE,		0,							I_ROUTE_COMMON,		0,	0},
+	
+	{I_DRIVE_INTERSECTION, 	330 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_A,			0},	
+	{I_DRIVE_INTERSECTION, 	315 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_A,			-5,		170 * I_MM_TO_STEPS_FAKTOR},
+	
+	{I_TURN_RIGHT,			0,							I_ROUTE_B,			0,	0},
+	{I_DRIVE_INTERSECTION, 	155*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,			0,	0},
+	{I_TURN_LEFT,			0,							I_ROUTE_B,			0,	0},
+	{I_DRIVE_INTERSECTION,	330*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,			0,	0},
+	{I_TURN_LEFT,			0,							I_ROUTE_B,			0,	0},
+	{I_DRIVE_INTERSECTION,	155*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,			0,	0},
+	{I_TURN_RIGHT,			0,							I_ROUTE_B,			0,	0},
+	{I_DRIVE_INTERSECTION,	315*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,			-5,	135 * I_MM_TO_STEPS_FAKTOR},
+	
+	{I_SET_SECOND_ROUTE,	0,							I_ROUTE_COMMON,		0,	0}
+};
+
+
+int32_t i_stateOrder_11_22[][5] = {
+	{I_PREPARE,				0,							I_ROUTE_COMMON,		2},
+	{I_READ_OBSTACLE,		1,							I_ROUTE_COMMON,		0,	0},
+	
+	{I_DRIVE_INTERSECTION,	205*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_A,			0,	0},
+	{I_TURN_RIGHT,			0,							I_ROUTE_A,			0,	0},
+	{I_DRIVE_INTERSECTION,	490*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_A,			2,	210 * I_MM_TO_STEPS_FAKTOR},
+	
+	{I_TURN_RIGHT,			0,							I_ROUTE_B,			0,	0},
+	{I_DRIVE_INTERSECTION,	155*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,			0,	0},
+	{I_TURN_LEFT,			0,							I_ROUTE_B,			0,	0},
+	{I_DRIVE_INTERSECTION,	205*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,			0,	0},
+	{I_TURN_RIGHT,			0,							I_ROUTE_B,			0,	0},
+	{I_DRIVE_INTERSECTION, 	100 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,			2,		500 * I_MM_TO_STEPS_FAKTOR},
+	{I_DRIVE_INTERSECTION, 	245 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,			2,		45 * I_MM_TO_STEPS_FAKTOR},
+	
+	{I_FINISHED,				0,							I_ROUTE_COMMON,		0,	0}		
+};
+
+int32_t i_stateOrder_11_23[][5] = {
+	{I_PREPARE,				0,							I_ROUTE_COMMON,		3},
+	{I_READ_OBSTACLE,		1,							I_ROUTE_COMMON,		0,	0},
+	
+	{I_DRIVE_INTERSECTION,	205*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_A,			0,	0},
+	{I_TURN_RIGHT,			0,							I_ROUTE_A,			0,	0},
+	{I_DRIVE_INTERSECTION,	490*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_A,			0,	0}, 
+	
+	{I_TURN_RIGHT,			0,							I_ROUTE_B,			0,	0},
+	{I_DRIVE_INTERSECTION,	155*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,			0,	0},
+	{I_TURN_LEFT,			0,							I_ROUTE_B,			0,	0},
+	{I_DRIVE_INTERSECTION,	205*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,			0,	0},
+	{I_TURN_RIGHT,			0,							I_ROUTE_B,			0,	0},
+	{I_DRIVE_INTERSECTION,	335*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,			0,	0},
+	
+	{I_TURN_RIGHT,			0,							I_ROUTE_COMMON,		0,	0},
+	{I_DRIVE_INTERSECTION, 	100 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,		3,		500 * I_MM_TO_STEPS_FAKTOR},
+	{I_DRIVE_INTERSECTION, 	110 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,		3,		45 * I_MM_TO_STEPS_FAKTOR},
+	{I_FINISHED,				0,							I_ROUTE_COMMON,		0,	0}
+};
+
+int32_t i_stateOrder_11_24[][5] = {
+	{I_PREPARE,				0,							I_ROUTE_COMMON,		4},
+	{I_READ_OBSTACLE,		1,							I_ROUTE_COMMON,		0,	0},
+	
+	{I_DRIVE_INTERSECTION,	205*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_A,			0,	0},
+	{I_TURN_RIGHT,			0,							I_ROUTE_A,			0,	0},
+	{I_DRIVE_INTERSECTION,	800*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_A,			0,	0}, 
+	
+	{I_TURN_RIGHT,			0,							I_ROUTE_B,			0,	0},
+	{I_DRIVE_INTERSECTION,	155*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,			0,	0},
+	{I_TURN_LEFT,			0,							I_ROUTE_B,			0,	0},
+	{I_DRIVE_INTERSECTION,	205*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,			0,	0},
+	{I_TURN_RIGHT,			0,							I_ROUTE_B,			0,	0},
+	{I_DRIVE_INTERSECTION,	645*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,			0,	0},
+	
+	{I_READ_OBSTACLE,		2,							I_ROUTE_COMMON,		0,	0},
+	
+	{I_DRIVE_INTERSECTION,	155*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_A,			0,	0},
+	{I_TURN_RIGHT,			0,							I_ROUTE_A,			0,	0},	
+	{I_DRIVE_INTERSECTION,	400*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_A,			-4,	300 * I_MM_TO_STEPS_FAKTOR},
+	
+	{I_TURN_RIGHT,			0,							I_ROUTE_B,			0,	0},
+	{I_DRIVE_INTERSECTION,	155*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,			0,	0},
+	{I_TURN_LEFT,			0,							I_ROUTE_B,			0,	0},
+	{I_DRIVE_INTERSECTION,	155*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,			0,	0},
+	{I_TURN_RIGHT,			0,							I_ROUTE_B,			0,	0},
+	{I_DRIVE_INTERSECTION,	245*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,			-4,	125 * I_MM_TO_STEPS_FAKTOR},
+	
+	{I_FINISHED,				0,							I_ROUTE_COMMON,		0,	0}
+};
+
+int32_t i_stateOrder_11_25[][5] = {
+	{I_PREPARE,				0,							I_ROUTE_COMMON,		5},
+	{I_TURN_180,			0,							I_ROUTE_COMMON,		0,	0},
+	{I_DRIVE_INTERSECTION, 	350 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,		0,	0},	
+	{I_TURN_LEFT,			0,							I_ROUTE_COMMON,		0,	0},
+	{I_DRIVE_INTERSECTION, 	315 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,		0,	0},
+	{I_TURN_180,			0,							I_ROUTE_COMMON,		0,	0},
+	{I_DRIVE_INTERSECTION, 	315 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,		-5,	135 * I_MM_TO_STEPS_FAKTOR},
+	{I_FINISHED,			0,							I_ROUTE_COMMON,		0,	0}
+};
+
+
+int32_t i_stateOrder_12_21[][5] = {
+	{I_PREPARE,				0,							I_ROUTE_COMMON,		1},
+	{I_READ_OBSTACLE,	1,				I_ROUTE_COMMON,	0},
+	{I_DRIVE_INTERSECTION,	155*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_A,	0},
+	{I_TURN_LEFT,		0,				I_ROUTE_A,	0},
+	{I_DRIVE_INTERSECTION,	555*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_A,	0,	0},
+	{I_TURN_180,			0,							I_ROUTE_A,	0,	0},
+	{I_DRIVE_INTERSECTION,	350*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_A,	1,	165*I_MM_TO_STEPS_FAKTOR},
+	{I_TURN_LEFT,		0,				I_ROUTE_B,	0},
+	{I_DRIVE_INTERSECTION,	205*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,	0},
+	{I_TURN_RIGHT,		0,				I_ROUTE_B,	0},
+	{I_DRIVE_INTERSECTION,	155*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,	0},
+	{I_TURN_LEFT,		0,				I_ROUTE_B,	0},
+	{I_DRIVE_INTERSECTION,	350*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,	-1,	110 * I_MM_TO_STEPS_FAKTOR},
+	{I_FINISHED,		0,				I_ROUTE_COMMON,	0}
+};
+
+int32_t i_stateOrder_12_23[][5] = {
+	{I_PREPARE,				0,							I_ROUTE_COMMON,		3},
+	{I_TURN_180,			0,							I_ROUTE_COMMON,		0},
+	{I_DRIVE_INTERSECTION, 	355 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,		0},
+	{I_TURN_RIGHT,			0,							I_ROUTE_COMMON,		0},
+	{I_DRIVE_INTERSECTION, 	100 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,		3,		500 * I_MM_TO_STEPS_FAKTOR},
+	{I_DRIVE_INTERSECTION, 	110 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,		3,		45 * I_MM_TO_STEPS_FAKTOR},
+	{I_FINISHED,				0,							I_ROUTE_COMMON,		0}
+};
+	
+int32_t i_stateOrder_12_24[][5] = {
+	{I_PREPARE,				0,							I_ROUTE_COMMON,		4},
+	{I_TURN_180,		0,				I_ROUTE_COMMON,	0}, //Was bewirkt die 350?
+	{I_DRIVE_INTERSECTION, 	645*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,	0}, //Hier verstehe ich die 510 in unserer bisherigen Lösung nicht. Evtl. ein Denkfehler von mir?
+	{I_READ_OBSTACLE,	2,				I_ROUTE_COMMON,	0},
+	{I_DRIVE_INTERSECTION,	155*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_A,	0},
+	{I_TURN_RIGHT,		0,				I_ROUTE_A,	0},
+	{I_DRIVE_INTERSECTION, 	400 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_A,			-4,		300 * I_MM_TO_STEPS_FAKTOR},
+	{I_TURN_RIGHT,		0,				I_ROUTE_B,	0},
+	{I_DRIVE_INTERSECTION,	155*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,	0},
+	{I_TURN_LEFT,		0,				I_ROUTE_B,	0},
+	{I_DRIVE_INTERSECTION,	155*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,	0},
+	{I_TURN_RIGHT,		0,				I_ROUTE_B,	0},
+	{I_DRIVE_INTERSECTION, 	245 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,			-4,		125 * I_MM_TO_STEPS_FAKTOR},
+	{I_FINISHED,		0,				I_ROUTE_COMMON,	0}
+};
+
+int32_t i_stateOrder_12_25[][5] = {
+	{I_PREPARE,				0,							I_ROUTE_COMMON,		5},
+	{I_READ_OBSTACLE,	1,								I_ROUTE_COMMON,	0},
+	{I_DRIVE_INTERSECTION,	155*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_A,	0},
+	{I_TURN_LEFT,		0,								I_ROUTE_A,	0},
+	{I_DRIVE_INTERSECTION,	555*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_A,	0},
+	{I_TURN_LEFT,		0,				I_ROUTE_B,	0},
+	{I_DRIVE_INTERSECTION,	205*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,	0},
+	{I_TURN_RIGHT,		0,				I_ROUTE_B,	0},
+	{I_DRIVE_INTERSECTION,	155*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,	0},
+	{I_TURN_LEFT,		0,				I_ROUTE_B,	0},
+	{I_DRIVE_INTERSECTION,	350*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,	0},
+	{I_TURN_LEFT,		0,				I_ROUTE_COMMON,	0},
+	{I_DRIVE_INTERSECTION,	315*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,	0},
+	{I_TURN_180,		0,				I_ROUTE_COMMON	,			0},
+	{I_DRIVE_INTERSECTION, 	315 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,		-5,	140 * I_MM_TO_STEPS_FAKTOR},
+	{I_FINISHED,		0,				I_ROUTE_COMMON,	0}
+};
+
+
+int32_t i_stateOrder_13_21[][5] = {
+	{I_PREPARE,				0,							I_ROUTE_COMMON,		1},
+	{I_TURN_LEFT,		0,				I_ROUTE_COMMON,	0},
+	{I_DRIVE_INTERSECTION,	335*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,	0},
+	{I_READ_OBSTACLE,	1,				I_ROUTE_COMMON,	0},
+	{I_DRIVE_INTERSECTION,	155*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_A,	0},
+	{I_TURN_LEFT,		0,				I_ROUTE_A,	0},
+	{I_DRIVE_INTERSECTION,	555*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_A,	0,	0},
+	{I_TURN_180,			0,							I_ROUTE_A,	0,	0},
+	{I_DRIVE_INTERSECTION,	350*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_A,	1,	165*I_MM_TO_STEPS_FAKTOR},
+	{I_TURN_LEFT,		0,				I_ROUTE_B,	0},
+	{I_DRIVE_INTERSECTION,	205*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,	0},
+	{I_TURN_RIGHT,		0,				I_ROUTE_B,	0},
+	{I_DRIVE_INTERSECTION,	155*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,	0},
+	{I_TURN_LEFT,		0,				I_ROUTE_B,	0},
+	{I_DRIVE_INTERSECTION,	350*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,	-1,	110 * I_MM_TO_STEPS_FAKTOR},
+	{I_FINISHED,		0,				I_ROUTE_COMMON,	0}
+};
+	
+int32_t i_stateOrder_13_22[][5] = {
+	{I_PREPARE,				0,							I_ROUTE_COMMON,		2},
+	{I_TURN_LEFT,			0,							I_ROUTE_COMMON,		0},
+	{I_DRIVE_INTERSECTION, 	335 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,		0},
+	{I_TURN_180, 			0, 							I_ROUTE_COMMON, 	0},
+	{I_DRIVE_INTERSECTION, 	100 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,			2,		500 * I_MM_TO_STEPS_FAKTOR},
+	{I_DRIVE_INTERSECTION, 	245 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,			2,		45 * I_MM_TO_STEPS_FAKTOR},
+	{I_FINISHED,				0,							I_ROUTE_COMMON,		0}		
+};
+
+int32_t i_stateOrder_13_24[][5] = {
+	{I_PREPARE,				0,							I_ROUTE_COMMON,		4},
+	{I_TURN_RIGHT,		0,				I_ROUTE_COMMON,	0},
+	{I_DRIVE_INTERSECTION,	310*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,	0},
+	{I_READ_OBSTACLE,	2,				I_ROUTE_COMMON,	0},
+	{I_DRIVE_INTERSECTION,	155*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_A,	0},
+	{I_TURN_RIGHT,		0,				I_ROUTE_A,	0},
+	{I_DRIVE_INTERSECTION, 	400 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_A,			-4,		300 * I_MM_TO_STEPS_FAKTOR},
+	{I_TURN_RIGHT,		0,				I_ROUTE_B,	0},
+	{I_DRIVE_INTERSECTION,	155*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,	0},
+	{I_TURN_LEFT,		0,				I_ROUTE_B,	0},
+	{I_DRIVE_INTERSECTION,	155*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,	0},
+	{I_TURN_RIGHT,		0,				I_ROUTE_B,	0},
+	{I_DRIVE_INTERSECTION, 	245 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,			-4,		125 * I_MM_TO_STEPS_FAKTOR},
+	{I_FINISHED,		0,				I_ROUTE_COMMON,	0}
+};
+
+int32_t i_stateOrder_13_25[][5] = { //Diese Route könnte man gut auch andersherum fahren, so ist sie zwar etwas länger, dafür gibt es keine Probleme bei der Hinderniserkennung.
+	{I_PREPARE,				0,							I_ROUTE_COMMON,		5},
+	{I_TURN_LEFT,		0,				I_ROUTE_COMMON,	0},
+	{I_DRIVE_INTERSECTION,	335*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,	0},
+	{I_READ_OBSTACLE,	1,				I_ROUTE_COMMON,	0},
+	{I_DRIVE_INTERSECTION,	155*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_A,	0},
+	{I_TURN_LEFT,		0,				I_ROUTE_A,	0},
+	{I_DRIVE_INTERSECTION,	555*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_A,	0},
+	{I_TURN_LEFT,		0,				I_ROUTE_B,	0},
+	{I_DRIVE_INTERSECTION,	205*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,	0},
+	{I_TURN_RIGHT,		0,				I_ROUTE_B,	0},
+	{I_DRIVE_INTERSECTION,	155*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,	0},
+	{I_TURN_LEFT,		0,				I_ROUTE_B,	0},
+	{I_DRIVE_INTERSECTION,	350*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,	0},
+	{I_TURN_LEFT,		0,				I_ROUTE_COMMON,	0},
+	{I_DRIVE_INTERSECTION,	315*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,	0},
+	{I_TURN_180,		0,				I_ROUTE_COMMON	,			0},
+	{I_DRIVE_INTERSECTION, 	315 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,		-5,	140 * I_MM_TO_STEPS_FAKTOR},
+	{I_FINISHED,		0,				I_ROUTE_COMMON,	0}
+};
+
+
+int32_t i_stateOrder_14_21[][5] = {
+	{I_PREPARE,				0,							I_ROUTE_COMMON,		1},
+	{I_TURN_RIGHT,			0,							I_ROUTE_COMMON,		0},
+	{I_DRIVE_INTERSECTION,	310*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,		0},
+	{I_READ_OBSTACLE,		0,							I_ROUTE_COMMON,		0},
+	{I_DRIVE_INTERSECTION,	330*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_A,			0},
+	{I_TURN_LEFT,			0,							I_ROUTE_A,			0},
+	{I_DRIVE_INTERSECTION,	155*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_A,			0},
+	{I_TURN_RIGHT,			0,							I_ROUTE_A,			0},
+	{I_DRIVE_INTERSECTION,	315*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_A,			0},
+	{I_TURN_LEFT, 			0,							I_ROUTE_B,			0},
+	{I_DRIVE_INTERSECTION,	155*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,			0},
+	{I_TURN_RIGHT,			0,							I_ROUTE_B,			0},
+	{I_DRIVE_INTERSECTION,	645*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,			0},
+	{I_TURN_RIGHT,			0,							I_ROUTE_COMMON,		0},
+	{I_DRIVE_INTERSECTION,	350*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,		1,	160*I_MM_TO_STEPS_FAKTOR},
+	{I_FINISHED,				0,							I_ROUTE_COMMON,		0}
+	
+};
+
+int32_t i_stateOrder_14_22[][5] = {
+	{I_PREPARE,				0,							I_ROUTE_COMMON,		2},
+	{I_TURN_RIGHT,			0,							I_ROUTE_COMMON,		0},
+	{I_DRIVE_INTERSECTION,	310*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,		0},
+	{I_TURN_RIGHT,			0,							I_ROUTE_COMMON,		0},
+	{I_DRIVE_INTERSECTION,	400*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,		0},
+	{I_TURN_LEFT,			0,							I_ROUTE_COMMON,		0},
+	{I_DRIVE_INTERSECTION,	490*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,		-2,	390 * I_MM_TO_STEPS_FAKTOR},
+	{I_FINISHED,		0,				I_ROUTE_COMMON,	0}
+};
+
+int32_t i_stateOrder_14_23[][5] = {
+	{I_PREPARE,				0,							I_ROUTE_COMMON,		3},
+	{I_TURN_RIGHT,			0,							I_ROUTE_COMMON,		0},
+	{I_DRIVE_INTERSECTION,	310*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,		0},
+	{I_TURN_RIGHT,			0,							I_ROUTE_COMMON,		0},
+	{I_DRIVE_INTERSECTION,	195*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,		0},
+	{I_TURN_LEFT,			0,							I_ROUTE_COMMON,		0},
+	{I_DRIVE_INTERSECTION,	155*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,		0},
+	{I_TURN_RIGHT,			0,							I_ROUTE_COMMON,		0},
+	{I_DRIVE_INTERSECTION,	100*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,		-3,	500*I_MM_TO_STEPS_FAKTOR},
+	{I_DRIVE_INTERSECTION,	110*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,		-3,	45*I_MM_TO_STEPS_FAKTOR},
+	{I_FINISHED,		0,				I_ROUTE_COMMON,	0}
+};
+
+int32_t i_stateOrder_14_25[][5] = {
+	{I_PREPARE,				0,							I_ROUTE_COMMON,		5},
+	{I_TURN_RIGHT,		0,				I_ROUTE_COMMON,	0},
+	{I_DRIVE_INTERSECTION,	310*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,	0},
+	{I_READ_OBSTACLE,	0,				I_ROUTE_COMMON,	0}, //Ob8: hier entspricht ROUTE_A nicht mehr der äußeren Route, sondern der Inneren!
+	{I_DRIVE_INTERSECTION,	330*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_A,	0},
+	{I_TURN_LEFT,		0,				I_ROUTE_A,	0},
+	{I_DRIVE_INTERSECTION,	155*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_A,	0},
+	{I_TURN_RIGHT,		0,				I_ROUTE_A,	0},
+	{I_DRIVE_INTERSECTION,	315*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_A,	-5,	135*I_MM_TO_STEPS_FAKTOR},
+	{I_TURN_LEFT,		0,				I_ROUTE_B,	0},
+	{I_DRIVE_INTERSECTION,	155*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,	0},
+	{I_TURN_RIGHT,		0,				I_ROUTE_B,	0},
+	{I_DRIVE_INTERSECTION,	645*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,	-5,	465*I_MM_TO_STEPS_FAKTOR}, //könnte vielleicht Probleme wegen der Kreuzungen zuvor geben->150 zu höherem Wert ändern?
+	{I_FINISHED,		0,				I_ROUTE_COMMON,	0}
+};
+
+
+int32_t i_stateOrder_15_21[][5] = {
+	{I_PREPARE,				0,							I_ROUTE_COMMON,		1},
+	{I_WAIT,				1500,						I_ROUTE_COMMON,		0},
+	{I_TURN_RIGHT,			0,							I_ROUTE_COMMON,		0},
+	{I_DRIVE_INTERSECTION, 	350 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,		1,		160 * I_MM_TO_STEPS_FAKTOR},
+	{I_FINISHED,		0,				I_ROUTE_COMMON,	0}
+};
+
+int32_t i_stateOrder_15_22[][5] = {
+	{I_PREPARE,				0,							I_ROUTE_COMMON,		2},
+	{I_TURN_RIGHT,		0,				I_ROUTE_COMMON,	0},
+	{I_DRIVE_INTERSECTION,	350*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,	0},
+	{I_READ_OBSTACLE,	1,				I_ROUTE_COMMON,	0},
+	{I_DRIVE_INTERSECTION,	205*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_A,	0},
+	{I_TURN_RIGHT,		0,				I_ROUTE_A,	0},
+	{I_DRIVE_INTERSECTION, 	490 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_A,			2,		210 * I_MM_TO_STEPS_FAKTOR},
+	{I_TURN_RIGHT,		0,				I_ROUTE_B,	0},
+	{I_DRIVE_INTERSECTION,	155*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,	0},
+	{I_TURN_LEFT,		0,				I_ROUTE_B,	0},
+	{I_DRIVE_INTERSECTION,	205*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,	0},
+	{I_TURN_RIGHT,		0,				I_ROUTE_B,	0},
+	{I_DRIVE_INTERSECTION, 	100 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,			2,		500 * I_MM_TO_STEPS_FAKTOR},
+	{I_DRIVE_INTERSECTION, 	245 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,			2,		45 * I_MM_TO_STEPS_FAKTOR},
+	{I_FINISHED,		0,				I_ROUTE_COMMON,	0}
+};
+
+int32_t i_stateOrder_15_23[][5] = {
+	{I_PREPARE,				0,							I_ROUTE_COMMON,		3},
+	{I_TURN_RIGHT,		0,				I_ROUTE_COMMON,	0},
+	{I_DRIVE_INTERSECTION,	350*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,	0},
+	{I_READ_OBSTACLE,	1,				I_ROUTE_COMMON,	0},
+	{I_DRIVE_INTERSECTION,	205*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_A,	0},
+	{I_TURN_RIGHT,		0,				I_ROUTE_A,	0},
+	{I_DRIVE_INTERSECTION,	490*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_A,	0},
+	{I_TURN_RIGHT,		0,				I_ROUTE_B,	0},
+	{I_DRIVE_INTERSECTION,	155*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,	0},
+	{I_TURN_LEFT,		0,				I_ROUTE_B,	0},
+	{I_DRIVE_INTERSECTION,	205*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,	0},
+	{I_TURN_RIGHT,		0,				I_ROUTE_B,	0},
+	{I_DRIVE_INTERSECTION,	335*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,	0},
+	{I_TURN_RIGHT,		0,				I_ROUTE_COMMON,	0},
+	{I_DRIVE_INTERSECTION, 	100 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,		3,		500 * I_MM_TO_STEPS_FAKTOR},
+	{I_DRIVE_INTERSECTION, 	110 * I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,		3,		45 * I_MM_TO_STEPS_FAKTOR},
+	{I_FINISHED,		0,				I_ROUTE_COMMON,	0}
+};
+
+int32_t i_stateOrder_15_24[][5] = {
+	{I_PREPARE,				0,							I_ROUTE_COMMON,		4},
+	{I_TURN_180,		0,				I_ROUTE_COMMON,	0}, //Was bewirkt die 350?
+	{I_DRIVE_INTERSECTION,	645*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_A,	0}, //Zuvor hätte Hindernis 0 schon als letztes gescannt und gespeichert werden sollen.
+	{I_TURN_LEFT,		0,				I_ROUTE_A,	0},
+	{I_DRIVE_INTERSECTION,	155*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_A,	0},
+	{I_TURN_RIGHT,		0,				I_ROUTE_A,	0},
+	{I_DRIVE_INTERSECTION,	310*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_A,	0},
+	{I_DRIVE_INTERSECTION,	315*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,	0},
+	{I_TURN_LEFT,		0,				I_ROUTE_B,	0},
+	{I_DRIVE_INTERSECTION,	155*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,	0},
+	{I_TURN_RIGHT,		0,				I_ROUTE_B,	0},
+	{I_DRIVE_INTERSECTION,	640*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_B,	0},
+	{I_TURN_LEFT,		0,				I_ROUTE_COMMON,	0},
+	{I_DRIVE_INTERSECTION,	245*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,	0},
+	{I_TURN_180,			0,							I_ROUTE_COMMON,	0},
+	{I_DRIVE_INTERSECTION,	245*I_MM_TO_STEPS_FAKTOR,	I_ROUTE_COMMON,	-4, 145*I_MM_TO_STEPS_FAKTOR},
+	{I_FINISHED,		0,				I_ROUTE_COMMON,	0}
+};	
+
 
 void i_init(uint8_t level){	
 																					//Initialisierung des Interpreters
@@ -187,11 +604,11 @@ void i_loop(){																								//Hauptloop des interpreters
 			break;
 			
 		case I_SET_FIRST_ROUTE:
-			//i_setFirstRoute();
+			i_setFirstRoute();
 			break;
 			
 		case I_SET_SECOND_ROUTE:
-			//i_setSecondRoute();			
+			i_setSecondRoute();			
 			break;
 		
 		case I_PREPARE:
@@ -508,8 +925,6 @@ void i_preparePackage(){
 	for(uint8_t i = 0; i < 3; i++){
 		if(i_packetAddress[i] == adress){
 			sv_loadArm(i);
-			Serial.print("load: ");
-			Serial.println(i);
 			break;
 		}
 	}
@@ -543,4 +958,160 @@ void i_finish(){
 	db_setRgbLed(0,1,0);			//Grün blinken
 }
 
+void i_setFirstRoute(){
+	uint8_t adress = 0;
+	
+	for(uint8_t i = 0; i < 3; i++){
+		if(i_packetPriority[i] == -1){
+			adress = i_packetAddress[i];
+			break;
+		}
+	}		
+	
+	Serial.print("First adress: ");
+	Serial.println(adress);
+	Serial.println();
+	
+	for(int y = 0; y < I_MAX_VALUE_ARRAY_LENGTH; y++){
+		for(int x = 0; x < 5; x++){	
+			switch(adress){
+				case 1:
+					i_stateOrder[y][x] = i_stateOrder_11[y][x];
+					break;
+				case 2:
+					i_stateOrder[y][x] = i_stateOrder_12[y][x];
+					break;
+				case 3:
+					i_stateOrder[y][x] = i_stateOrder_13[y][x];
+					break;
+				case 4:
+					i_stateOrder[y][x] = i_stateOrder_14[y][x];
+					break;
+				case 5:
+					i_stateOrder[y][x] = i_stateOrder_15[y][x];
+					break;			
+			}
+		}
+	}
+	
+	i_stateOrder_pos = 0;
+	i_state = i_stateOrder[0][0];
+}
+
+void i_setSecondRoute(){
+	i_lastPackage = true;
+	
+	uint8_t adress1 = 0;
+	uint8_t adress2 = 0;
+	
+	for(uint8_t i = 0; i < 3; i++){
+		if(i_packetPriority[i] == -1){
+			adress1 = i_packetAddress[i];
+			break;
+		}
+	}		
+	
+	for(uint8_t i = 0; i < 3; i++){
+		if(i_packetPriority[i] == 1){
+			adress2 = i_packetAddress[i];
+			break;
+		}
+	}
+	
+	Serial.print("First adress: ");
+	Serial.println(adress1);
+	Serial.print("Second adress: ");
+	Serial.println(adress2);
+	Serial.println();
+	
+	for(int y = 0; y < I_MAX_VALUE_ARRAY_LENGTH; y++){
+		for(int x = 0; x < 5; x++){	
+			switch(adress1){
+				case 1:
+					switch(adress2){
+						case 2:
+							i_stateOrder[y][x] = i_stateOrder_11_22[y][x];
+							break;
+						case 3:
+							i_stateOrder[y][x] = i_stateOrder_11_23[y][x];
+							break;
+						case 4:
+							i_stateOrder[y][x] = i_stateOrder_11_24[y][x];
+							break;
+						case 5:
+							i_stateOrder[y][x] = i_stateOrder_11_25[y][x];
+							break;
+					}						
+					break;
+				case 2:
+					switch(adress2){
+						case 1:
+							i_stateOrder[y][x] = i_stateOrder_12_21[y][x];
+							break;
+						case 3:
+							i_stateOrder[y][x] = i_stateOrder_12_23[y][x];
+							break;
+						case 4:
+							i_stateOrder[y][x] = i_stateOrder_12_24[y][x];
+							break;
+						case 5:
+							i_stateOrder[y][x] = i_stateOrder_12_25[y][x];
+							break;
+					}
+					break;
+				case 3:
+					switch(adress2){
+						case 1:
+							i_stateOrder[y][x] = i_stateOrder_13_21[y][x];
+							break;
+						case 2:
+							i_stateOrder[y][x] = i_stateOrder_13_22[y][x];
+							break;
+						case 4:
+							i_stateOrder[y][x] = i_stateOrder_13_24[y][x];
+							break;
+						case 5:
+							i_stateOrder[y][x] = i_stateOrder_13_25[y][x];
+							break;
+					}
+					break;
+				case 4:
+					switch(adress2){
+						case 1:
+							i_stateOrder[y][x] = i_stateOrder_14_21[y][x];
+							break;
+						case 2:
+							i_stateOrder[y][x] = i_stateOrder_14_22[y][x];
+							break;
+						case 3:
+							i_stateOrder[y][x] = i_stateOrder_14_23[y][x];
+							break;
+						case 5:
+							i_stateOrder[y][x] = i_stateOrder_14_25[y][x];
+							break;
+					}
+					break;
+				case 5:
+					switch(adress2){
+						case 1:
+							i_stateOrder[y][x] = i_stateOrder_15_21[y][x];
+							break;
+						case 2:
+							i_stateOrder[y][x] = i_stateOrder_15_22[y][x];
+							break;
+						case 3:
+							i_stateOrder[y][x] = i_stateOrder_15_23[y][x];
+							break;
+						case 4:
+							i_stateOrder[y][x] = i_stateOrder_15_24[y][x];
+							break;
+					}
+					break;			
+			}
+		}
+	}
+	
+	i_stateOrder_pos = 0;
+	i_state = i_stateOrder[0][0];
+}
 

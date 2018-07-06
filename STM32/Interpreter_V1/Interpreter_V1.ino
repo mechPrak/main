@@ -94,9 +94,9 @@ void loop() {
 	
 	sv_setPos(SV_SERVO_ARM, 87 + 20);
 	delay(500);
-	sv_setPos(SV_SERVO_ARM, 87);
+	sv_setPos(SV_SERVO_ARM, 88);
 	delay(2000);
-	sv_setPos(SV_SERVO_ARM, 85);
+	sv_setPos(SV_SERVO_ARM, 86);
 	delay(2000);
 	
 	sv_setPos(SV_SERVO_ARM, 16);
@@ -104,9 +104,9 @@ void loop() {
 	
 	sv_setPos(SV_SERVO_ARM, 87 + 20);
 	delay(1000);
-	sv_setPos(SV_SERVO_ARM, 87);
+	sv_setPos(SV_SERVO_ARM, 88);
 	delay(2000);
-	sv_setPos(SV_SERVO_ARM, 85);
+	sv_setPos(SV_SERVO_ARM, 86);
 	delay(2000);
 	
 	/*

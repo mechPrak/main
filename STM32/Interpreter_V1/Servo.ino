@@ -8,7 +8,7 @@
 
 //kommen in interpreter auhc vor
 #define ARM_LEFT 164
-#define ARM_MID 88
+#define ARM_MID 87
 #define ARM_RIGHT 16
 
 #define HATCH_OPEN 85
@@ -72,32 +72,26 @@ void sv_loop(){
 	
 	if(sv_centerArmFlag){
 		sv_setPos(SV_SERVO_ARM, ARM_MID + 20);
-		Serial.println("center arm mid + 20");
 		if(sv_centerCounter > 1000){
 			sv_setPos(SV_SERVO_ARM, ARM_MID);
 			sv_centerArmFlag = false;
-			Serial.println("center arm mid");
-		}		
+		}
 	}
 	
 	if(sv_loadArmFlag){
 		switch(sv_color){
 			case 0:
 				sv_setPos(SV_SERVO_SELECTOR, SELECTOR_GREEN);
-				//Serial.println("load green");
 				break;
 			case 1:
 				sv_setPos(SV_SERVO_SELECTOR, SELECTOR_YELLOW);
-				Serial.println("load yellow");
 				break;
 			case 2:
 				sv_setPos(SV_SERVO_SELECTOR, SELECTOR_RED);
-				Serial.println("load red");
 				break;
 		}
 		if(sv_loadArmCounter > 500 && sv_loadArmCounter < 550){
 			sv_setPos(SV_SERVO_HATCH, HATCH_OPEN);
-			Serial.println("open hatch");
 		}
 		
 		if(sv_loadArmCounter > 550 && sv_loadArmCounter < 650){
@@ -122,7 +116,6 @@ void sv_loop(){
 		if(sv_loadArmCounter > 2500){
 			sv_setPos(SV_SERVO_HATCH, HATCH_CLOSED);
 			sv_loadArmFlag = false;
-			Serial.println("close hatch");
 		}
 	}
 }
@@ -144,6 +137,9 @@ void sv_setPos(uint8_t servo, uint8_t pos){					//Setzt die Zielposition des gew
 void sv_centerArm(){
 	sv_centerArmFlag = true;
 	sv_centerCounter = 0;
+	if(i_lastPackage){
+		
+	}
 }
 
 void sv_loadArm(uint8_t nColor){
@@ -154,7 +150,6 @@ void sv_loadArm(uint8_t nColor){
 }
 
 void sv_lowerArm(int8_t direction){
-	Serial.println("lower Arm");
 	if(direction < 0){
 		sv_setPos(SV_SERVO_ARM, ARM_LEFT);
 	}
